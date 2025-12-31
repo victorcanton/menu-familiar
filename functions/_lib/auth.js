@@ -1,39 +1,36 @@
-export async function requireAuth(request, env) {
-  const auth = request.headers.get("Authorization") || "";
-  const m = auth.match(/^Bearer\s+(.+)$/i);
-  if (!m) return { ok: false, status: 401, error: "Missing token" };
+// functions/_lib/auth.js
+import { verifyJWT } from "./jwt";
 
-  const token = m[1];
+export function json(data, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      ...extraHeaders,
+    },
+  });
+}
 
-  // Verificar JWT HS256 manual (minimalista)
-  const [h, p, s] = token.split(".");
-  if (!h || !p || !s) return { ok: false, status: 401, error: "Bad token" };
+export function getBearerToken(request) {
+  const h = request.headers.get("Authorization") || request.headers.get("authorization");
+  if (!h) return null;
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : null;
+}
 
-  const encoder = new TextEncoder();
-  const base64urlToUint8 = (b64url) => {
-    const b64 = b64url.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((b64url.length + 3) % 4);
-    const bin = atob(b64);
-    return Uint8Array.from(bin, (c) => c.charCodeAt(0));
-  };
+/**
+ * requireAuth({ request, env }) -> { ok:true, payload } | { ok:false, response }
+ */
+export async function requireAuth({ request, env }) {
+  const token = getBearerToken(request);
+  if (!token) {
+    return { ok: false, response: json({ ok: false, error: "missing_token" }, 401) };
+  }
 
-  const data = `${h}.${p}`;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(env.JWT_SECRET),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
+  const v = await verifyJWT(token, env.JWT_SECRET);
+  if (!v.ok) {
+    return { ok: false, response: json({ ok: false, error: v.error }, 401) };
+  }
 
-  const sigOk = await crypto.subtle.verify(
-    "HMAC",
-    key,
-    base64urlToUint8(s),
-    encoder.encode(data)
-  );
-
-  if (!sigOk) return { ok: false, status: 401, error: "Invalid token" };
-
-  const payloadJson = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/")));
-  return { ok: true, payload: payloadJson };
+  return { ok: true, payload: v.payload };
 }
