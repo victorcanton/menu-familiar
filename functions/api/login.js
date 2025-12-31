@@ -64,7 +64,11 @@ export async function onRequestPost({ request, env }) {
       env.JWT_SECRET
     );
 
-    return json({ ok: true, token });
+    return json({
+      ok: true,
+      token,
+      family: { id: family.id, name: family.name }
+    });
 
   } catch (err) {
     return json(
