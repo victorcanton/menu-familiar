@@ -3381,24 +3381,46 @@
       return !!localStorage.getItem("mf_token");
     }
     
-    function renderAuthState() {
+    async function bootstrapAuth() {
       const token = localStorage.getItem("mf_token");
-      const fam = localStorage.getItem("mf_family");
-    
-      if (token) {
-        console.log("Token present. Family:", fam ? JSON.parse(fam) : null);
-        // Aquí pots: amagar input de codi, habilitar botons, etc.
-        // ex: document.getElementById("loginBox").style.display = "none";
-      } else {
-        console.log("No token. User not logged in.");
-        // Mostrar input de codi, deshabilitar accions protegides
+      if (!token) {
+        console.log("No token. Not logged in.");
+        return;
       }
+    
+      const res = await apiFetch("/api/me");
+      const data = await res.json().catch(() => null);
+    
+      if (!res.ok || !data?.ok) {
+        console.log("Token invalid/expired. Clearing.", data);
+        localStorage.removeItem("mf_token");
+        localStorage.removeItem("mf_family");
+        return;
+      }
+    
+      console.log("Token valid. Payload:", data.payload);
+      // aquí ja pots activar la UI “loguejada” de forma segura
     }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      bootstrapAuth();
+    });
+
     
     document.addEventListener("DOMContentLoaded", () => {
       renderAuthState();
     });
 
+    async function apiFetch(path, options = {}) {
+      const token = localStorage.getItem("mf_token");
+      const headers = {
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+    
+      const res = await fetch(path, { ...options, headers });
+      return res;
+    }
 
   </script>
 
