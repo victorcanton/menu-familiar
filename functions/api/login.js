@@ -1,6 +1,29 @@
 import { hashCode } from "../_lib/crypto";
 //import { createJWT } from "../_lib/jwt";
 
+
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "content-type",
+};
+
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      ...CORS_HEADERS,
+    },
+  });
+}
+
+export async function onRequestOptions() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+
 export async function onRequestPost({ request, env }) {
   try {
     const { code } = await request.json();
