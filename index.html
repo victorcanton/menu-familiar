@@ -1890,14 +1890,13 @@
         <div class="muted subtitleInline">Planificació familiar</div>
       </div>
       <!-- AUTH BAR (mínim) -->
-      <div id="authBar" style="display:flex; gap:8px; align-items:center; margin: 12px 0;">
+      <div class="authBar">
         <span id="authStatus" class="muted">No autenticat</span>
       
-        <input id="familyCodeInput" placeholder="Codi família (ex: CASA-1234)"
-               style="max-width: 260px; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(0,0,0,.12);" />
+        <input id="familyCodeInput" placeholder="Codi família (ex: CASA-1234)" />
+        <button id="loginBtn">Login</button>
       
-        <button id="loginBtn" class="gcNavBtn">Login</button>
-        <button id="logoutBtn" class="gcNavBtn" style="display:none;">Logout</button>
+        <button id="logoutBtn" style="display:none;">Logout</button>
       </div>
 
       <div class="weekControls">
@@ -3436,115 +3435,117 @@
     // ===== AUTH (client) =====
     const AUTH_TOKEN_KEY = "mf_token";
     const AUTH_FAMILY_KEY = "mf_family";
-    
+
     function setAuth(token, family) {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-      localStorage.setItem(AUTH_FAMILY_KEY, JSON.stringify(family || null));
+      localStorage.setItem("mf_token", token);
+      localStorage.setItem("mf_family", JSON.stringify(family));
     }
-    
+  
     function clearAuth() {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(AUTH_FAMILY_KEY);
+      localStorage.removeItem("mf_token");
+      localStorage.removeItem("mf_family");
     }
-    
+  
     function getAuth() {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const token = localStorage.getItem("mf_token");
+      const familyRaw = localStorage.getItem("mf_family");
       let family = null;
-      try { family = JSON.parse(localStorage.getItem(AUTH_FAMILY_KEY) || "null"); } catch {}
+      try { family = familyRaw ? JSON.parse(familyRaw) : null; } catch {}
       return { token, family };
     }
-    
-    // Aquesta és la funció que et falta (i que et dona l’error)
+  
     function renderAuthState() {
       const { token, family } = getAuth();
+  
       const statusEl = document.getElementById("authStatus");
+      const inputEl  = document.getElementById("familyCodeInput");
       const loginBtn = document.getElementById("loginBtn");
       const logoutBtn = document.getElementById("logoutBtn");
-      const input = document.getElementById("familyCodeInput");
-    
-      if (token && family) {
-        statusEl.textContent = `Autenticat: ${family.name || family.id || "família"}`;
+  
+      const logged = !!token && !!family;
+  
+      if (logged) {
+        statusEl.textContent = `Autenticat: ${family.name}`;
+        inputEl.style.display = "none";
         loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-flex";
-        input.style.display = "none";
+        logoutBtn.style.display = "inline-block";
       } else {
         statusEl.textContent = "No autenticat";
-        loginBtn.style.display = "inline-flex";
+        inputEl.style.display = "inline-block";
+        loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
-        input.style.display = "inline-flex";
       }
     }
-    
-    async function doLogin() {
-      const input = document.getElementById("familyCodeInput");
-      const code = (input.value || "").trim();
-    
-      if (!code) {
-        alert("Introdueix el codi de família");
+  
+    async function apiFetch(path, options = {}) {
+      const token = localStorage.getItem("mf_token");
+      const headers = {
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      const res = await fetch(path, { ...options, headers });
+      return res;
+    }
+  
+    async function bootstrapAuth() {
+      // 1) Pinta ràpid el que hi ha a localStorage
+      renderAuthState();
+  
+      // 2) Si hi ha token, valida'l contra el server
+      const token = localStorage.getItem("mf_token");
+      if (!token) return;
+  
+      const res = await apiFetch("/api/me");
+      const data = await res.json().catch(() => null);
+  
+      if (!res.ok || !data?.ok) {
+        console.log("Token invalid/expirat. Netejant.", data);
+        clearAuth();
+        renderAuthState();
         return;
       }
-    
+  
+      // Opcional: sincronitza family des del payload si vols
+      const fam = { id: data.payload.family_id, name: data.payload.family_name };
+      localStorage.setItem("mf_family", JSON.stringify(fam));
+      renderAuthState();
+    }
+  
+    async function doLogin() {
+      const code = (document.getElementById("familyCodeInput").value || "").trim();
+      if (!code) return alert("Introdueix el codi de família");
+  
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code }),
       });
-    
+  
       const data = await res.json().catch(() => null);
-    
       if (!res.ok || !data?.ok) {
-        console.error("Login failed:", res.status, data);
-        alert(data?.error || "Login incorrecte");
-        return;
+        return alert(data?.error || "Login error");
       }
-    
+  
       setAuth(data.token, data.family);
       renderAuthState();
-    
-      // aquí pots arrencar càrregues que requereixin auth
-      // ex: await loadRecipesOnce();
     }
-    
-    async function bootAuth() {
-      renderAuthState(); // pinta estat immediat (encara que no s’hagi validat)
-    
-      const { token } = getAuth();
-      if (!token) {
-        console.log("No token. Not logged in");
-        return;
-      }
-    
-      // Validació “server-side” del token (necessita /api/me)
-      const res = await fetch("/api/me", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    
-      const data = await res.json().catch(() => null);
-    
-      if (!res.ok || !data?.ok) {
-        console.warn("Token invalid/expired. Clearing.", res.status, data);
-        clearAuth();
-        renderAuthState();
-        return;
-      }
-    
-      // Ens quedem la família “bona” que ens diu el servidor
-      setAuth(token, data.family);
+  
+    function doLogout() {
+      clearAuth();
       renderAuthState();
     }
-    
-    // wiring UI
+  
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("loginBtn")?.addEventListener("click", doLogin);
-      document.getElementById("logoutBtn")?.addEventListener("click", () => {
-        clearAuth();
-        renderAuthState();
-        location.reload(); // opcional
+      document.getElementById("loginBtn").addEventListener("click", doLogin);
+      document.getElementById("logoutBtn").addEventListener("click", doLogout);
+  
+      // Enter per login
+      document.getElementById("familyCodeInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doLogin();
       });
-    
-      bootAuth();
+  
+      bootstrapAuth();
     });
-
   </script>
 
   </div>
