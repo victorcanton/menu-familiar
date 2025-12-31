@@ -3377,6 +3377,28 @@
       return data;
     }
 
+    function isLoggedIn() {
+      return !!localStorage.getItem("mf_token");
+    }
+    
+    function renderAuthState() {
+      const token = localStorage.getItem("mf_token");
+      const fam = localStorage.getItem("mf_family");
+    
+      if (token) {
+        console.log("Token present. Family:", fam ? JSON.parse(fam) : null);
+        // Aquí pots: amagar input de codi, habilitar botons, etc.
+        // ex: document.getElementById("loginBox").style.display = "none";
+      } else {
+        console.log("No token. User not logged in.");
+        // Mostrar input de codi, deshabilitar accions protegides
+      }
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      renderAuthState();
+    });
+
 
   </script>
 
