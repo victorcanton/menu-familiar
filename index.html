@@ -1889,6 +1889,17 @@
         <h2>Menú setmanal</h2>
         <div class="muted subtitleInline">Planificació familiar</div>
       </div>
+      <!-- AUTH BAR (mínim) -->
+      <div id="authBar" style="display:flex; gap:8px; align-items:center; margin: 12px 0;">
+        <span id="authStatus" class="muted">No autenticat</span>
+      
+        <input id="familyCodeInput" placeholder="Codi família (ex: CASA-1234)"
+               style="max-width: 260px; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(0,0,0,.12);" />
+      
+        <button id="loginBtn" class="gcNavBtn">Login</button>
+        <button id="logoutBtn" class="gcNavBtn" style="display:none;">Logout</button>
+      </div>
+
       <div class="weekControls">
         <button id="prevWeekBtn" class="gcNavBtn" title="Setmana anterior">‹</button>
         <div id="weekLabel" class="weekPill"></div>
@@ -3421,6 +3432,118 @@
       const res = await fetch(path, { ...options, headers });
       return res;
     }
+
+    // ===== AUTH (client) =====
+    const AUTH_TOKEN_KEY = "mf_token";
+    const AUTH_FAMILY_KEY = "mf_family";
+    
+    function setAuth(token, family) {
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(AUTH_FAMILY_KEY, JSON.stringify(family || null));
+    }
+    
+    function clearAuth() {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_FAMILY_KEY);
+    }
+    
+    function getAuth() {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      let family = null;
+      try { family = JSON.parse(localStorage.getItem(AUTH_FAMILY_KEY) || "null"); } catch {}
+      return { token, family };
+    }
+    
+    // Aquesta és la funció que et falta (i que et dona l’error)
+    function renderAuthState() {
+      const { token, family } = getAuth();
+      const statusEl = document.getElementById("authStatus");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const input = document.getElementById("familyCodeInput");
+    
+      if (token && family) {
+        statusEl.textContent = `Autenticat: ${family.name || family.id || "família"}`;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-flex";
+        input.style.display = "none";
+      } else {
+        statusEl.textContent = "No autenticat";
+        loginBtn.style.display = "inline-flex";
+        logoutBtn.style.display = "none";
+        input.style.display = "inline-flex";
+      }
+    }
+    
+    async function doLogin() {
+      const input = document.getElementById("familyCodeInput");
+      const code = (input.value || "").trim();
+    
+      if (!code) {
+        alert("Introdueix el codi de família");
+        return;
+      }
+    
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+    
+      const data = await res.json().catch(() => null);
+    
+      if (!res.ok || !data?.ok) {
+        console.error("Login failed:", res.status, data);
+        alert(data?.error || "Login incorrecte");
+        return;
+      }
+    
+      setAuth(data.token, data.family);
+      renderAuthState();
+    
+      // aquí pots arrencar càrregues que requereixin auth
+      // ex: await loadRecipesOnce();
+    }
+    
+    async function bootAuth() {
+      renderAuthState(); // pinta estat immediat (encara que no s’hagi validat)
+    
+      const { token } = getAuth();
+      if (!token) {
+        console.log("No token. Not logged in");
+        return;
+      }
+    
+      // Validació “server-side” del token (necessita /api/me)
+      const res = await fetch("/api/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    
+      const data = await res.json().catch(() => null);
+    
+      if (!res.ok || !data?.ok) {
+        console.warn("Token invalid/expired. Clearing.", res.status, data);
+        clearAuth();
+        renderAuthState();
+        return;
+      }
+    
+      // Ens quedem la família “bona” que ens diu el servidor
+      setAuth(token, data.family);
+      renderAuthState();
+    }
+    
+    // wiring UI
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("loginBtn")?.addEventListener("click", doLogin);
+      document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        clearAuth();
+        renderAuthState();
+        location.reload(); // opcional
+      });
+    
+      bootAuth();
+    });
 
   </script>
 
