@@ -1,5 +1,5 @@
 import { hashCode } from "../_lib/crypto";
-//import { createJWT } from "../_lib/jwt";
+import { createJWT } from "../_lib/jwt";
 
 
 const CORS_HEADERS = {
