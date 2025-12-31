@@ -3357,6 +3357,25 @@
       }
     }
 
+    async function login(code) {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+    
+      const data = await res.json();
+    
+      if (!data.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+    
+      // 🔐 AQUÍ ÉS EL PUNT 1
+      localStorage.setItem("mf_token", data.token);
+      localStorage.setItem("mf_family", JSON.stringify(data.family));
+    
+      return data;
+    }
 
 
   </script>
