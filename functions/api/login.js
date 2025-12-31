@@ -1,13 +1,11 @@
 import { hashCode } from "../_lib/crypto";
 import { createJWT } from "../_lib/jwt";
 
-
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "POST, OPTIONS",
   "access-control-allow-headers": "content-type",
 };
-
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -23,7 +21,6 @@ export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-
 export async function onRequestPost({ request, env }) {
   try {
     const { code } = await request.json();
@@ -33,15 +30,11 @@ export async function onRequestPost({ request, env }) {
 
     const last4 = code.slice(-4);
 
-    // 1️⃣ Buscar candidates pel last4
     const candidates = await env.DB
-      .prepare(
-        "SELECT id, name, code_hash, code_salt FROM families WHERE code_last4 = ?1"
-      )
+      .prepare("SELECT id, name, code_hash, code_salt FROM families WHERE code_last4 = ?1")
       .bind(last4)
       .all();
 
-    // 2️⃣ Verificar hash
     let family = null;
     for (const row of candidates.results) {
       const hash = await hashCode(code, row.code_salt);
@@ -55,25 +48,13 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: "Invalid code" }, 401);
     }
 
-    // 3️⃣ JWT
     const token = await createJWT(
-      {
-        family_id: family.id,
-        family_name: family.name
-      },
+      { family_id: family.id, family_name: family.name },
       env.JWT_SECRET
     );
 
-    return json({
-      ok: true,
-      token,
-      family: { id: family.id, name: family.name }
-    });
-
+    return json({ ok: true, token, family: { id: family.id, name: family.name } });
   } catch (err) {
-    return json(
-      { ok: false, error: "Server error", detail: String(err) },
-      500
-    );
+    return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
