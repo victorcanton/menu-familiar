@@ -1,8 +1,29 @@
-import { requireAuth, json } from "../_lib/auth";
+// functions/api/me.js
+import { verifyJWT } from "../_lib/jwt";
 
-export async function onRequestGet(ctx) {
-  const auth = await requireAuth(ctx);
-  if (!auth.ok) return auth.response;
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
+}
 
-  return json({ ok: true, payload: auth.payload });
+function getBearerToken(request) {
+  const h = request.headers.get("Authorization") || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1] : null;
+}
+
+export async function onRequestGet({ request, env }) {
+  try {
+    const token = getBearerToken(request);
+    if (!token) return json({ ok: false, error: "Missing token" }, 401);
+
+    const v = await verifyJWT(token, env.JWT_SECRET);
+    if (!v.ok) return json({ ok: false, error: v.error }, 401);
+
+    return json({ ok: true, payload: v.payload });
+  } catch (e) {
+    return json({ ok: false, error: "Server error", detail: String(e) }, 500);
+  }
 }
