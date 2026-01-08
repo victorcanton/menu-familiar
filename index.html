@@ -3121,8 +3121,17 @@
       document.getElementById("recipeEmpty").style.display = "none";
       document.getElementById("recipeForm").style.display = "flex";
 
-      document.getElementById("rIcon").value = String(r.icon || "");
-      document.getElementById("rIcon").dispatchEvent(new Event("change"));
+      // Update the icon picker
+      const iconValue = String(r.icon || "");
+      document.getElementById("rIconValue").value = iconValue;
+      selectIconInPicker(document.getElementById("rIconPicker"), iconValue);
+      
+      // Update preview
+      const previewEl = document.getElementById("rIconPreview");
+      if (previewEl) {
+        previewEl.innerHTML = twemojiSvgIcon(iconValue) || twemojiSvgIcon("plate");
+      }
+      
       document.getElementById("rName").value = String(r.name || "");
       document.getElementById("rCategory").value = String(r.category || "");
       document.getElementById("rIngredients").value = String(r.ingredients || "");
@@ -3137,7 +3146,7 @@
 
       const payload = {
         id: SELECTED_RECIPE_ID,
-        icon: (document.getElementById("rIcon").value || "").trim(),
+        icon: (document.getElementById("rIconValue").value || "").trim(),
         name: (document.getElementById("rName").value || "").trim(),
         category: (document.getElementById("rCategory").value || "").trim(),
         ingredients: (document.getElementById("rIngredients").value || "").trim(),
@@ -3404,11 +3413,13 @@
           if (previewEl) {
             previewEl.innerHTML = iconHtml;
           }
-          // Store value for saving (in a hidden input or data attribute)
+          // Store value for saving (in a hidden input)
           const hiddenInput = document.getElementById("rIconValue");
           if (hiddenInput) {
             hiddenInput.value = key === "auto" ? "" : key;
           }
+          // Mark form as dirty
+          setRecipeDirty(true);
         });
         
         pickerEl.appendChild(btn);
