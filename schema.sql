@@ -6,13 +6,13 @@ PRAGMA foreign_keys = ON;
 -- Families
 -- =========================
 CREATE TABLE IF NOT EXISTS families (
-  id            TEXT PRIMARY KEY,              -- e.g. "fam_9f3a..."
-  name          TEXT NOT NULL,                 -- display name
-  code_hash     TEXT NOT NULL,                 -- base64 hash (PBKDF2) of family code
-  code_salt     TEXT NOT NULL,                 -- base64 salt
-  code_last4    TEXT,                          -- for admin UI (non-sensitive hint)
-  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  id              TEXT PRIMARY KEY,              -- e.g. "fam_9f3a..."
+  name            TEXT NOT NULL,                 -- display name
+  code_hash       TEXT NOT NULL,                 -- base64 hash (PBKDF2) of family code
+  code_salt       TEXT NOT NULL,                 -- base64 salt
+  code_last4      TEXT,                          -- for admin UI (non-sensitive hint)
+  created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
   code_rotated_at TEXT
 );
 
@@ -22,15 +22,26 @@ CREATE INDEX IF NOT EXISTS idx_families_name ON families(name);
 -- Recipes (catalog)
 -- =========================
 CREATE TABLE IF NOT EXISTS recipes (
-  id          TEXT PRIMARY KEY,                -- e.g. "rec_..."
-  family_id   TEXT NOT NULL,
-  name        TEXT NOT NULL,
-  meal_type   TEXT,                            -- "breakfast" | "lunch" | "snack" | "dinner" | null
-  tags_json   TEXT,                            -- JSON array of strings, optional
-  notes       TEXT,                            -- free text
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  archived_at TEXT,
+  id           TEXT PRIMARY KEY,                -- e.g. "rec_..."
+  family_id    TEXT NOT NULL,
+  name         TEXT NOT NULL,
+  -- legacy/alternate classification
+  meal_type    TEXT,       -- (kept for compatibility)
+  -- sheet fields
+  category     TEXT,       -- e.g. "Segon", "Plat únic", "Esmorzar"
+  icon         TEXT,       -- small emoji/key stored in sheet
+  ingredients  TEXT,
+  steps        TEXT,
+  video_url    TEXT,
+  -- optional derived / UI fields from Sheets
+  count        INTEGER DEFAULT 0,
+  last_used    TEXT,
+  -- earlier flexible fields
+  tags_json    TEXT,
+  notes        TEXT,                            -- free text
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at  TEXT,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
 );
 
