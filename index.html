@@ -1968,8 +1968,9 @@
           <option value="Esmorzar">Esmorzar</option>
           <option value="Berenar">Berenar</option>
         </select>
-        <select id="newIcon"></select>
+        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
         <span id="newIconPreview" class="iconPreview"></span>
+        <input type="hidden" id="newIconValue">
         <button id="addBtn" class="btnPrimary">Afegir/Actualitzar</button>
         <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
       </div>
@@ -2590,7 +2591,7 @@
       const category = catSelect.value;
       if (!name) { hideLoading(); return; }
 
-      const res = await gasp("api_upsertRecipe", { name, category, icon: (document.getElementById("rIconValue").value || "").trim() });
+      const res = await gasp("api_upsertRecipe", { name, category, icon: (document.getElementById("newIconValue").value || "").trim() });
 
       // Si ha anat bé
       if (res && res.ok !== false) {
@@ -3378,13 +3379,57 @@
     });
 
     document.addEventListener("DOMContentLoaded", () => {
-      fillIconSelect(document.getElementById("newIcon"), { includeAuto: true });
-      bindIconPreview(document.getElementById("newIcon"), document.getElementById("newIconPreview"));
+      // New recipe icon picker
+      const newPickerEl = document.getElementById("newIconPicker");
+      if (newPickerEl) {
+        fillIconPickerForAdd(newPickerEl, { includeAuto: true });
+      }
 
-      fillIconPicker(document.getElementById("rIconPicker"), { includeAuto: true });
+      // Recipe editor icon picker
+      const recipePickerEl = document.getElementById("rIconPicker");
+      if (recipePickerEl) {
+        fillIconPicker(recipePickerEl, { includeAuto: true });
+      }
     });
 
+    function fillIconPickerForAdd(pickerEl, { includeAuto = true } = {}) {
+      if (!pickerEl) return;
 
+      pickerEl.innerHTML = "";
+      const keys = includeAuto ? ICON_KEYS : ICON_KEYS.filter(k => k !== "auto");
+
+      for (const key of keys) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "iconPickerBtn";
+        btn.dataset.iconKey = key;
+        btn.title = ICON_LABELS[key] || key;
+        
+        // Render the icon
+        const iconHtml = twemojiSvgIcon(key) || twemojiSvgIcon("plate");
+        btn.innerHTML = iconHtml;
+        
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          // Remove selection from all buttons
+          pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
+          // Select this button
+          btn.classList.add("selected");
+          // Store the value and trigger preview update
+          const previewEl = document.getElementById("newIconPreview");
+          if (previewEl) {
+            previewEl.innerHTML = iconHtml;
+          }
+          // Store value for saving (in hidden input)
+          const hiddenInput = document.getElementById("newIconValue");
+          if (hiddenInput) {
+            hiddenInput.value = key === "auto" ? "" : key;
+          }
+        });
+        
+        pickerEl.appendChild(btn);
+      }
+    }
     function fillIconPicker(pickerEl, { includeAuto = true } = {}) {
       if (!pickerEl) return;
 
