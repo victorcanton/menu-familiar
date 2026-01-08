@@ -23,6 +23,16 @@ function generateId(prefix) {
   return id;
 }
 
+// Helper: convert position to course name
+function positionToCourse(meal, position) {
+  if (meal === "lunch" || meal === "dinner") {
+    if (position === 1) return "primer";
+    if (position === 2) return "segon";
+    if (position === 3) return "unic";
+  }
+  return "plat";
+}
+
 async function authenticate(request, env) {
   const h = request.headers.get("Authorization") || "";
   const m = h.match(/^Bearer\s+(.+)$/i);
@@ -87,6 +97,17 @@ export async function onRequestGet({ request, env }) {
 
     console.log("Menu items result:", itemsResult);
 
+    // Transform results to include slot_id
+    const plan = (itemsResult.results || []).map(item => ({
+      slot_id: `${item.date}_${item.meal}_${positionToCourse(item.meal, item.position)}`,
+      id: item.id,
+      date: item.date,
+      meal: item.meal,
+      position: item.position,
+      recipe_id: item.recipe_id,
+      label: item.label
+    }));
+
     // Get notes for the week
     const notesResult = await env.DB
       .prepare(`
@@ -101,7 +122,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({
       ok: true,
-      plan: itemsResult.results || [],
+      plan: plan,
       notes: notesResult.results || [],
     });
   } catch (err) {
@@ -164,7 +185,6 @@ export async function onRequestPost({ request, env }) {
           // Parse meal string (e.g., "lunch_primer" -> meal: "lunch", position: 1)
           const mealParts = (change.meal || "").split("_");
           const mealKey = mealParts[0];
-          const courseIndex = mealParts[1] ? parseInt(mealParts[1]) : 1;
           
           // Map course names to positions
           const courseToPosition = {
