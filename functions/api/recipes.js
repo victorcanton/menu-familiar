@@ -36,6 +36,11 @@ async function authenticate(request, env) {
     return { ok: false, error: "Missing token" };
   }
   
+  if (!env.JWT_SECRET) {
+    console.error("JWT_SECRET not configured in environment");
+    return { ok: false, error: "Server misconfigured" };
+  }
+  
   const verification = await verifyJWT(token, env.JWT_SECRET);
   
   if (!verification.ok) {
