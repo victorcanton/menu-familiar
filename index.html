@@ -3026,7 +3026,9 @@
 
       renderRecipeList();
       setTimeout(() => {
-        selectRecipeForEdit(String(id));
+        if (Array.isArray(RECIPES) && RECIPES.length) {
+          selectRecipeForEdit(String(RECIPES[0].id));
+        }
       }, 0);
     }
 
