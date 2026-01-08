@@ -2590,7 +2590,7 @@
       const category = catSelect.value;
       if (!name) { hideLoading(); return; }
 
-      const res = await gasp("api_upsertRecipe", { name, category, icon });
+      const res = await gasp("api_upsertRecipe", { name, category, icon: (document.getElementById("rIconValue").value || "").trim() });
 
       // Si ha anat bé
       if (res && res.ok !== false) {
@@ -3372,35 +3372,60 @@
       fillIconSelect(document.getElementById("newIcon"), { includeAuto: true });
       bindIconPreview(document.getElementById("newIcon"), document.getElementById("newIconPreview"));
 
-      fillIconSelect(document.getElementById("rIcon"), { includeAuto: true });
-      bindIconPreview(document.getElementById("rIcon"), document.getElementById("rIconPreview"));
+      fillIconPicker(document.getElementById("rIconPicker"), { includeAuto: true });
     });
 
 
-    function fillIconSelect(selectEl, { includeAuto = true } = {}) {
-      if (!selectEl) return;
+    function fillIconPicker(pickerEl, { includeAuto = true } = {}) {
+      if (!pickerEl) return;
 
-      // guarda valor actual per no perdre’l
-      const current = String(selectEl.value || "").trim();
-
-      // buida
-      selectEl.innerHTML = "";
-
+      pickerEl.innerHTML = "";
       const keys = includeAuto ? ICON_KEYS : ICON_KEYS.filter(k => k !== "auto");
 
       for (const key of keys) {
-        const opt = document.createElement("option");
-        opt.value = (key === "auto") ? "" : key;
-
-        // text fallback del <option> (no tots els navegadors renderitzen SVG dins option)
-        const label = ICON_LABELS[key] || key;
-        const preview = (key === "auto") ? "✨" : (TW_SVG_CACHE[twCodeForKey(key)] ? "🖼️" : "🍽️");
-        opt.textContent = `${label}`; // mantén-ho net (el preview el fem fora amb un <span>)
-        selectEl.appendChild(opt);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "iconPickerBtn";
+        btn.dataset.iconKey = key;
+        btn.title = ICON_LABELS[key] || key;
+        
+        // Render the icon
+        const iconHtml = twemojiSvgIcon(key) || twemojiSvgIcon("plate");
+        btn.innerHTML = iconHtml;
+        
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          // Remove selection from all buttons
+          pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
+          // Select this button
+          btn.classList.add("selected");
+          // Store the value and trigger preview update
+          const previewEl = document.getElementById("rIconPreview");
+          if (previewEl) {
+            previewEl.innerHTML = iconHtml;
+          }
+          // Store value for saving (in a hidden input or data attribute)
+          const hiddenInput = document.getElementById("rIconValue");
+          if (hiddenInput) {
+            hiddenInput.value = key === "auto" ? "" : key;
+          }
+        });
+        
+        pickerEl.appendChild(btn);
       }
+    }
 
-      // restaura selecció si existia
-      if (current) selectEl.value = current;
+    function selectIconInPicker(pickerEl, iconKey) {
+      if (!pickerEl) return;
+      
+      // Clear previous selection
+      pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
+      
+      // Find and select the button with this key
+      const btn = pickerEl.querySelector(`[data-icon-key="${iconKey || "auto"}"]`);
+      if (btn) {
+        btn.classList.add("selected");
+      }
     }
 
     function bindIconPreview(selectEl, previewEl) {
@@ -3655,6 +3680,7 @@
                   <div id="rIconPicker" class="iconPickerGrid"></div>
                   <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
                 </div>
+                <input type="hidden" id="rIconValue">
 
                 <div class="rhCat">
                   <select id="rCategory" title="Categoria">
@@ -3686,7 +3712,6 @@
       </div>
     </div>
   </div>
-  <input type="hidden" id="rIconValue">
   <div id="recipeViewOverlay" class="overlay">
     <div id="recipeViewModal" class="modal" role="dialog" aria-modal="true" tabindex="-1">
       <div class="modalHeader">
