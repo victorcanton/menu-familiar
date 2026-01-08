@@ -3191,17 +3191,6 @@
         console.warn("manageRecipesBtn not found");
       }
 
-    
-      const rSaveBtnEl = document.getElementById("rSaveBtn");
-      if (rSaveBtnEl) {
-        rSaveBtnEl.addEventListener("click", (e) => {
-          e.preventDefault();
-          saveRecipeDetails();
-        });
-      } else {
-        console.warn("rSaveBtn not found");
-      }
-
       const recipeSaveTopBtnEl = document.getElementById("recipeSaveTopBtn");
       if (recipeSaveTopBtnEl) {
         recipeSaveTopBtnEl.addEventListener("click", (e) => {
