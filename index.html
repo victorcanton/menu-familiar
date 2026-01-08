@@ -2095,12 +2095,49 @@
       return NOTES.find(n => n.date === date && n.meal === mealKey)?.note || "";
     }
 
-    function gasp(fn, ...args) {
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler(resolve)
-          .withFailureHandler(reject)[fn](...args);
-      });
+    async function gasp(fn, ...args) {
+      // Map old Google Apps Script function names to new endpoints
+      const apiMap = {
+        api_getRecipes: { method: "GET", path: "/api/recipes" },
+        api_getWeekData: { method: "GET", path: "/api/menu" },
+        api_upsertRecipe: { method: "POST", path: "/api/recipes" },
+        api_setNote: { method: "POST", path: "/api/menu" },
+        api_applySlotChanges: { method: "POST", path: "/api/menu" },
+        api_updateRecipeDetails: { method: "POST", path: "/api/recipes" },
+      };
+
+      const config = apiMap[fn];
+      if (!config) throw new Error(`Unknown API: ${fn}`);
+
+      let url = config.path;
+      let options = {};
+
+      if (config.method === "GET") {
+        if (args[0]) {
+          const params = new URLSearchParams(args[0]);
+          url += "?" + params.toString();
+        }
+        options.method = "GET";
+      } else {
+        const data = args[0] || {};
+        if (fn === "api_setNote") {
+          data.action = "setNote";
+        } else if (fn === "api_applySlotChanges") {
+          data.action = "applyChanges";
+        }
+        options.method = "POST";
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(data);
+      }
+
+      const response = await apiFetch(url, options);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `API error: ${response.status}`);
+      }
+
+      return await response.json();
     }
 
     let DIRTY_SLOTS = {};      // { slot_id: {date, meal, recipe_id} | {slot_id, __delete:true} }

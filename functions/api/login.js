@@ -55,6 +55,7 @@ export async function onRequestPost({ request, env }) {
       { expiresInSec: 60 * 60 * 24 * 30 }
     );
     
+
     return json({ ok: true, token, family: { id: family.id, name: family.name } });
   } catch (err) {
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
