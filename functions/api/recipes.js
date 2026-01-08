@@ -52,15 +52,26 @@ async function authenticate(request, env) {
 
 export async function onRequestGet({ request, env }) {
   try {
+    console.log("GET /api/recipes - Starting");
+    
     const auth = await authenticate(request, env);
+    console.log("Auth result:", auth);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
+    console.log("Family ID:", family_id);
+    console.log("env.DB:", env.DB ? "exists" : "MISSING");
+
+    if (!env.DB) {
+      return json({ ok: false, error: "Database not configured" }, 500);
+    }
 
     const result = await env.DB
       .prepare("SELECT id, name, category, icon, ingredients, steps, video_url, created_at FROM recipes WHERE family_id = ?1 ORDER BY name")
       .bind(family_id)
       .all();
+
+    console.log("Query result:", result);
 
     const recipes = result.results || [];
     
@@ -88,7 +99,7 @@ export async function onRequestGet({ request, env }) {
     return json({ ok: true, recipes: recipesWithCount });
   } catch (err) {
     console.error("Recipe GET error:", err);
-    return json({ ok: false, error: "Server error", detail: String(err) }, 500);
+    return json({ ok: false, error: "Server error", detail: String(err), stack: err.stack }, 500);
   }
 }
 

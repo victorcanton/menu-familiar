@@ -52,7 +52,10 @@ export async function onRequestOptions() {
 
 export async function onRequestGet({ request, env }) {
   try {
+    console.log("GET /api/menu - Starting");
+    
     const auth = await authenticate(request, env);
+    console.log("Auth result:", auth);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -60,8 +63,15 @@ export async function onRequestGet({ request, env }) {
     const weekStart = url.searchParams.get("weekStart");
     const weekEnd = url.searchParams.get("weekEnd");
 
+    console.log("Params - weekStart:", weekStart, "weekEnd:", weekEnd);
+    console.log("env.DB:", env.DB ? "exists" : "MISSING");
+
     if (!weekStart || !weekEnd) {
       return json({ ok: false, error: "weekStart and weekEnd required" }, 400);
+    }
+
+    if (!env.DB) {
+      return json({ ok: false, error: "Database not configured" }, 500);
     }
 
     // Get menu items for the week
@@ -75,6 +85,8 @@ export async function onRequestGet({ request, env }) {
       .bind(family_id, weekStart, weekEnd)
       .all();
 
+    console.log("Menu items result:", itemsResult);
+
     // Get notes for the week
     const notesResult = await env.DB
       .prepare(`
@@ -85,6 +97,8 @@ export async function onRequestGet({ request, env }) {
       .bind(family_id, weekStart, weekEnd)
       .all();
 
+    console.log("Notes result:", notesResult);
+
     return json({
       ok: true,
       plan: itemsResult.results || [],
@@ -92,7 +106,7 @@ export async function onRequestGet({ request, env }) {
     });
   } catch (err) {
     console.error("Menu GET error:", err);
-    return json({ ok: false, error: "Server error", detail: String(err) }, 500);
+    return json({ ok: false, error: "Server error", detail: String(err), stack: err.stack }, 500);
   }
 }
 
