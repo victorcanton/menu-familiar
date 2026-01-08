@@ -27,7 +27,7 @@ export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-async function authenticate(request) {
+async function authenticate(request, env) {
   const h = request.headers.get("Authorization") || "";
   const m = h.match(/^Bearer\s+(.+)$/i);
   const token = m ? m[1] : null;
@@ -36,12 +36,10 @@ async function authenticate(request) {
     return { ok: false, error: "Missing token" };
   }
   
-  // Note: You'll need to add verifyJWT to your jwt.js
-  // For now, assuming it returns { ok: true, payload: { family_id, family_name } }
-  const verification = { ok: true, payload: { family_id: "fam_test" } }; // Placeholder
+  const verification = await verifyJWT(token, env.JWT_SECRET);
   
   if (!verification.ok) {
-    return { ok: false, error: "Invalid token" };
+    return { ok: false, error: verification.error || "Invalid token" };
   }
   
   return { ok: true, family_id: verification.payload.family_id };
@@ -49,7 +47,7 @@ async function authenticate(request) {
 
 export async function onRequestGet({ request, env }) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -84,13 +82,14 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, recipes: recipesWithCount });
   } catch (err) {
+    console.error("Recipe GET error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
 
 export async function onRequestPost({ request, env }) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -129,13 +128,14 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: true, id: newId });
     }
   } catch (err) {
+    console.error("Recipe POST error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
 
 export async function onRequestDelete({ request, env }) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -153,6 +153,7 @@ export async function onRequestDelete({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
+    console.error("Recipe DELETE error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }

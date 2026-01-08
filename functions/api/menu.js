@@ -1,3 +1,5 @@
+import { verifyJWT } from "../_lib/jwt";
+
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -21,7 +23,7 @@ function generateId(prefix) {
   return id;
 }
 
-async function authenticate(request) {
+async function authenticate(request, env) {
   const h = request.headers.get("Authorization") || "";
   const m = h.match(/^Bearer\s+(.+)$/i);
   const token = m ? m[1] : null;
@@ -30,8 +32,13 @@ async function authenticate(request) {
     return { ok: false, error: "Missing token" };
   }
   
-  // Placeholder - would validate JWT in real implementation
-  return { ok: true, family_id: "fam_test" };
+  const verification = await verifyJWT(token, env.JWT_SECRET);
+  
+  if (!verification.ok) {
+    return { ok: false, error: verification.error || "Invalid token" };
+  }
+  
+  return { ok: true, family_id: verification.payload.family_id };
 }
 
 export async function onRequestOptions() {
@@ -40,7 +47,7 @@ export async function onRequestOptions() {
 
 export async function onRequestGet({ request, env }) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -79,13 +86,14 @@ export async function onRequestGet({ request, env }) {
       notes: notesResult.results || [],
     });
   } catch (err) {
+    console.error("Menu GET error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
 
 export async function onRequestPost({ request, env }) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
@@ -134,57 +142,39 @@ export async function onRequestPost({ request, env }) {
             .bind(family_id, change.slot_id)
             .run();
         } else {
+          // Parse meal string (e.g., "lunch_primer" -> meal: "lunch", position: 1)
+          const mealParts = (change.meal || "").split("_");
+          const mealKey = mealParts[0];
+          const courseIndex = mealParts[1] ? parseInt(mealParts[1]) : 1;
+          
+          // Map course names to positions
+          const courseToPosition = {
+            "primer": 1,
+            "segon": 2,
+            "unic": 3,
+            "plat": 1,
+          };
+          const pos = courseToPosition[mealParts[1]] || 1;
+
           // Check if menu item exists
           const existing = await env.DB
             .prepare("SELECT id FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
-            .bind(family_id, change.date, change.meal.split("_")[0], change.meal.split("_")[1] || 0)
+            .bind(family_id, change.date, mealKey, pos)
             .first();
 
           if (existing) {
             await env.DB
-              .prepare("UPDATE menu_items SET recipe_id = ?1, label = ?2, updated_at = ?3 WHERE family_id = ?4 AND date = ?5 AND meal = ?6")
-              .bind(change.recipe_id || null, change.label || null, now, family_id, change.date, change.meal.split("_")[0])
+              .prepare("UPDATE menu_items SET recipe_id = ?1, label = ?2, updated_at = ?3 WHERE id = ?4 AND family_id = ?5")
+              .bind(change.recipe_id || null, change.label || null, now, existing.id, family_id)
               .run();
-          } else {
+          } else if (change.recipe_id) {
             const itemId = generateId("mi");
-            const position = parseInt(change.meal.split("_")[1]) || 1;
-            const mealKey = change.meal.split("_")[0];
-
             await env.DB
               .prepare("INSERT INTO menu_items (id, family_id, date, meal, position, recipe_id, label, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
-              .bind(itemId, family_id, change.date, mealKey, position, change.recipe_id || null, change.label || null, now, now)
+              .bind(itemId, family_id, change.date, mealKey, pos, change.recipe_id, change.label || null, now, now)
               .run();
           }
         }
-      }
-
-      return json({ ok: true });
-    } else if (action === "setSlot") {
-      // Set a single menu item
-      const itemId = generateId("mi");
-      const pos = position || 1;
-
-      // Check if slot exists
-      const existing = await env.DB
-        .prepare("SELECT id FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
-        .bind(family_id, date, meal, pos)
-        .first();
-
-      if (existing && recipe_id) {
-        await env.DB
-          .prepare("UPDATE menu_items SET recipe_id = ?1, label = ?2, updated_at = ?3 WHERE family_id = ?4 AND date = ?5 AND meal = ?6 AND position = ?7")
-          .bind(recipe_id, label || null, now, family_id, date, meal, pos)
-          .run();
-      } else if (recipe_id) {
-        await env.DB
-          .prepare("INSERT INTO menu_items (id, family_id, date, meal, position, recipe_id, label, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
-          .bind(itemId, family_id, date, meal, pos, recipe_id, label || null, now, now)
-          .run();
-      } else if (existing) {
-        await env.DB
-          .prepare("DELETE FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
-          .bind(family_id, date, meal, pos)
-          .run();
       }
 
       return json({ ok: true });
@@ -192,6 +182,7 @@ export async function onRequestPost({ request, env }) {
 
     return json({ ok: false, error: "Unknown action" }, 400);
   } catch (err) {
+    console.error("Menu POST error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
