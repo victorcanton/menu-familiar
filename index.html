@@ -1878,6 +1878,44 @@
     opacity: .75;
   }
 
+  /* Visual Icon Picker */
+  .iconPickerGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .iconPickerBtn {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 2px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 120ms ease;
+  }
+  
+  .iconPickerBtn:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.05);
+    transform: scale(1.05);
+  }
+  
+  .iconPickerBtn.selected {
+    border-color: rgba(59,130,246,0.8);
+    background: rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
   </style>
 
 </head>
@@ -1889,7 +1927,44 @@
         <h2>Menú setmanal</h2>
         <!-- <div class="muted subtitleInline">Planificació familiar</div> -->
       </div>
-      <!-- AUTH BAR (mínim) -->
+      <!-- AUTH BAR (mínim) --      /* Visual Icon Picker */
+      .iconPickerGrid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        padding: 8px;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        margin-bottom: 8px;
+      }
+      
+      .iconPickerBtn {
+        width: 100%;
+        aspect-ratio: 1;
+        padding: 0;
+        border: 2px solid rgba(0,0,0,0.1);
+        background: rgba(255,255,255,0.9);
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        transition: all 120ms ease;
+      }
+      
+      .iconPickerBtn:hover {
+        border-color: rgba(59,130,246,0.35);
+        background: rgba(59,130,246,0.05);
+        transform: scale(1.05);
+      }
+      
+      .iconPickerBtn.selected {
+        border-color: rgba(59,130,246,0.8);
+        background: rgba(59,130,246,0.15);
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+      }>
       <div class="authBar">
         <span id="authStatus" class="muted">No autenticat</span>
       
@@ -3613,7 +3688,7 @@
                 </div>
 
                 <div class="rhIcon">
-                  <select id="rIcon"></select>
+                  <div id="rIconPicker" class="iconPickerGrid"></div>
                   <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
                 </div>
 
@@ -3647,7 +3722,7 @@
       </div>
     </div>
   </div>
-
+  <input type="hidden" id="rIconValue">
   <div id="recipeViewOverlay" class="overlay">
     <div id="recipeViewModal" class="modal" role="dialog" aria-modal="true" tabindex="-1">
       <div class="modalHeader">
