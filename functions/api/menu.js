@@ -177,10 +177,30 @@ export async function onRequestPost({ request, env }) {
       for (const change of changes || []) {
         if (change.__delete) {
           // Delete the menu item
-          await env.DB
-            .prepare("DELETE FROM menu_items WHERE family_id = ?1 AND id = ?2")
-            .bind(family_id, change.slot_id)
-            .run();
+          // Parse slot_id (format: "YYYY-MM-DD_meal_course") to extract date, meal, course
+          const parts = (change.slot_id || "").split("_");
+          if (parts.length >= 3) {
+            const deleteDate = parts[0];  // "2026-01-06"
+            const deleteMeal = parts[1];  // "lunch"
+            const deleteCourse = parts[2]; // "primer", "segon", "unic", or "plat"
+            
+            // Map course name back to position
+            const courseToPosition = {
+              "primer": 1,
+              "segon": 2,
+              "unic": 3,
+              "plat": 1,
+            };
+            const deletePos = courseToPosition[deleteCourse] || 1;
+            
+            // Delete by date, meal, and position (these are the unique identifiers)
+            await env.DB
+              .prepare("DELETE FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
+              .bind(family_id, deleteDate, deleteMeal, deletePos)
+              .run();
+            
+            console.log(`Deleted: ${deleteDate} ${deleteMeal} position ${deletePos}`);
+          }
         } else {
           // Parse meal string (e.g., "lunch_primer" -> meal: "lunch", position: 1)
           const mealParts = (change.meal || "").split("_");
