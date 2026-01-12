@@ -1223,6 +1223,13 @@
     background: rgba(59,130,246,0.15);
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
+
+  .mealFields {
+    width: 100%; /* Ensure it takes the full width */
+    display: flex; /* Align items in a row */
+    flex-direction: column; /* Stack items vertically */
+    gap: 8px; /* Space between fields */
+  }
   </style>
 
 </head>
@@ -1268,16 +1275,18 @@
 
       <div class="row">
         <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-        <select id="newCat">
-          <option value="Primer">Primer</option>
-          <option value="Segon">Segon</option>
-          <option value="Plat únic">Plat únic</option>
-          <option value="Esmorzar">Esmorzar</option>
-          <option value="Berenar">Berenar</option>
-        </select>
-        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
-        <span id="newIconPreview" class="iconPreview"></span>
-        <input type="hidden" id="newIconValue">
+        <div class="mealFields"> <!-- New wrapper for meal fields -->
+            <select id="newCat">
+                <option value="Primer">Primer</option>
+                <option value="Segon">Segon</option>
+                <option value="Plat únic">Plat únic</option>
+                <option value="Esmorzar">Esmorzar</option>
+                <option value="Berenar">Berenar</option>
+            </select>
+            <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
+            <span id="newIconPreview" class="iconPreview"></span>
+            <input type="hidden" id="newIconValue">
+        </div>
         <button id="addBtn" class="btnPrimary">Afegir/Actualitzar</button>
         <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
       </div>
