@@ -624,10 +624,18 @@
   /* Una fila per àpat: icona + bloc clickable */
   .mealRow{
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
     gap: 8px;
+    width: 100%;
   }
-
+  .mealLabel{
+    width: 100%;
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(0,0,0,0.65);
+    padding: 0 8px;
+    text-transform: uppercase;
+  }
   /* icona a l’esquerra */
   .mealIcon{
     width: 16px;
@@ -645,12 +653,11 @@
   .mealBody{
     flex: 1 1 auto;
     min-height: 52px;
-
+    width: 100%;
     border-radius: 14px;
     border: 1px solid rgba(0,0,0,0.06);
     background: rgba(255,255,255,0.55);
     padding: 8px;
-
     transition: background .12s ease, transform .12s ease;
   }
 
@@ -1224,12 +1231,6 @@
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
 
-  .mealFields {
-    width: 100%; /* Ensure it takes the full width */
-    display: flex; /* Align items in a row */
-    flex-direction: column; /* Stack items vertically */
-    gap: 8px; /* Space between fields */
-  }
   </style>
 
 </head>
@@ -1275,18 +1276,16 @@
 
       <div class="row">
         <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-        <div class="mealFields"> <!-- New wrapper for meal fields -->
-            <select id="newCat">
-                <option value="Primer">Primer</option>
-                <option value="Segon">Segon</option>
-                <option value="Plat únic">Plat únic</option>
-                <option value="Esmorzar">Esmorzar</option>
-                <option value="Berenar">Berenar</option>
-            </select>
-            <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
-            <span id="newIconPreview" class="iconPreview"></span>
-            <input type="hidden" id="newIconValue">
-        </div>
+        <select id="newCat">
+          <option value="Primer">Primer</option>
+          <option value="Segon">Segon</option>
+          <option value="Plat únic">Plat únic</option>
+          <option value="Esmorzar">Esmorzar</option>
+          <option value="Berenar">Berenar</option>
+        </select>
+        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
+        <span id="newIconPreview" class="iconPreview"></span>
+        <input type="hidden" id="newIconValue">
         <button id="addBtn" class="btnPrimary">Afegir/Actualitzar</button>
         <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
       </div>
