@@ -1117,768 +1117,74 @@
 
   .recipeHeaderGrid{
     display: grid;
-    grid-template-columns: 260px 1fr; /* icona (fix) + categoria (flex) */
-    grid-template-areas:
-      "name name"
-      "icon cat";
-    gap: 10px;
-    align-items: center;
-  }
-
-  .recipeRow div[style*="font-weight:700"]{
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* Àrees */
-  .recipeHeaderGrid .rhName{ grid-area: name; }
-  .recipeHeaderGrid .rhIcon{ grid-area: icon; }
-  .recipeHeaderGrid .rhCat { grid-area: cat; }
-
-  /* Nom: ocupa tota l'amplada */
-  .recipeHeaderGrid .rhName #rName{
-    width: 100%;
-    display: block;
-    box-sizing: border-box;
-    min-width: 0;
-  }
-
-  /* Icona: select + preview alineats */
-  .recipeHeaderGrid .rhIcon{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-  }
-  .recipeHeaderGrid .rhIcon #rIcon{
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  /* Categoria: ocupa la resta */
-  .recipeHeaderGrid .rhCat #rCategory{
-    width: 100%;
-    min-width: 220px;
-  }
-
-  /* Preview */
-  .iconPreview{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    background: rgba(0,0,0,0.05);
-  }
-
-  /* Important: una mica més d'alçada als selects perquè no “ballin” */
-  #rIcon, #rCategory, #rName{
-    min-height: 36px;
-  }
-
-  #rName, #rIcon, #rCategory{
-    width: 100%;
-    min-width: 0;
-  }
-
-  #rCategory, #rIcon{
-  min-height: 40px;
-  font-size: 14px;
-  padding: 8px 12px;
-  }
-
-  #rName{
-    min-height: 36px;
-  }
-
-  /* =========================
-    MODAL "Editar àpat" - COMENTARI COMPACTE + SCROLL INTERN
-    ========================= */
-
-  /* 1) El modal no ha de deixar que res “surti” per sota */
-  .overlay .modal{
-    overflow: hidden;           /* clau perquè res desbordi fora */
-    max-height: 90vh;           /* ja ho tens, però ho reforcem */
-  }
-
-  /* 2) Fes que el cos del modal pugui encongir i contenir scroll intern */
-  .overlay .modalBody{
-    flex: 1 1 auto;
-    min-height: 0;              /* clau en flex/grids perquè els fills no desbordin */
-    overflow: hidden;
-  }
-
-  /* 3) Bloc del comentari: 1 fila (camp + botó) */
-  .noteField{
-    display: grid;
-    grid-template-columns: 1fr auto; /* input a l’esquerra, botó a la dreta */
-    gap: 10px;
-    align-items: center;
-    padding: 10px;
-  }
-
-  /* si tens label dins noteField, que ocupi tota l’amplada a dalt (opcional) */
-  .noteField label{
-    grid-column: 1 / -1;
-    margin-bottom: 4px;
-  }
-
-  /* textarea del comentari: 1 línia i sense resize */
-  .noteField textarea,
-  .noteField input[type="text"]{
-    height: 40px;
-    min-height: 40px;
-    max-height: 40px;
-    resize: none;
-    overflow: hidden;
-    line-height: 20px;          /* text centrat verticalment */
-    padding: 10px 12px;
-  }
-
-  /* botó de guardar comentari a la mateixa fila */
-  .noteActions{
-    margin-top: 0;              /* elimina el salt */
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  /* si el botó està dins noteActions, fes-lo “auto” i no full width */
-  .noteActions button{
-    white-space: nowrap;
-  }
-
-  /* 4) Zona dels llistats: ha de quedar dins i fer scroll */
-  .pickerCols{
-    min-height: 0;
-  }
-
-  /* Cada columna (Primers/Segons/Únics): contenidor i scroll intern */
-  .pickerCol{
-    min-height: 0;
-    max-height: 52vh;           /* ajusta si cal (p.ex 48vh / 55vh) */
-    overflow: hidden;           /* evita que la llista surti del card */
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* La llista real (on hi ha les rCard) és qui fa scroll */
-  .pickerList{
-    min-height: 0;
-    max-height: 100%;           /* anul·la max-height anterior si en tens */
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* =========================
-    MODAL ÀPAT - COMPACTE (més items visibles)
-    ========================= */
-
-  /* 1) Modal: menys padding general */
-  .overlay .modal{
-    padding: 10px;
-    border-radius: 18px;
-  }
-
-  /* 2) Header del modal: menys aire */
-  .modalHeader{
-    padding: 4px 4px 6px 4px;
-    gap: 8px;
-  }
-  .modalTitle{ font-size: 15px; }
-
-  /* 3) Cos del modal: menys marge superior i menys gap */
-  .modalBody{
-    margin-top: 6px;
-    gap: 8px;
-  }
-
-  /* 4) Comentari: encara més compactat */
-  .noteField{
-    padding: 8px;
-    border-radius: 14px;
-  }
-  .noteField label{
-    font-size: 11px;
-    margin-bottom: 4px;
-  }
-  .noteField textarea,
-  .noteField input[type="text"]{
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
-    padding: 8px 10px;
-    font-size: 14px;
-  }
-  .noteActions{
-    gap: 8px;
-  }
-
-  /* 5) Buscador (cerca plats): menys alçada */
-  .pickerTop{
-    padding: 2px 0;
-    gap: 8px;
-  }
-  .pickerSearch{
-    padding: 6px 10px;
-    border-radius: 12px;
-  }
-  .pickerSearch input{
-    font-size: 14px;
-  }
-
-  /* 6) Columnes: menys padding i menys gap */
-  .pickerCols{
-    gap: 8px;
-  }
-  .pickerCol{
-    padding: 8px;
-    border-radius: 14px;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .pickerColHeader{
-    margin-bottom: 4px;
-  }
-  .pickerColTitle{ font-size: 13px; }
-  .pickerCurrent{ font-size: 11px; }
-
-  /* 7) Llista: menys espai entre ítems */
-  .pickerList{
-    gap: 6px;
-    padding-right: 2px;
-  }
-  /* =========================
-    MODAL ÀPAT - TÍTOL + DATA EN UNA LÍNIA
-    ========================= */
-
-  /* Converteix el header en una sola fila “compacta” */
-  .modalHeader{
-    align-items: center;
-    padding: 6px 8px;
-  }
-
-  /* El bloc del títol (on tens "Editar Dinar" + data) en una fila */
-  .modalHeader > div:first-child{
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
-  }
-
-  /* El títol i la data en línia */
-  .modalTitle{
-    font-size: 15px;
-    line-height: 1.1;
-    margin: 0;
-    white-space: nowrap;
-  }
-
-  .modalHeader > div:first-child > div:nth-child(2){
-    font-size: 12px;
-    opacity: .7;
-    line-height: 1.1;
-    margin: 0;
-    white-space: nowrap;
-  }
-
-  /* Evita que el títol empenyi el botó fora */
-  .modalHeader > div:first-child{
-    overflow: hidden;
-  }
-  .modalTitle{
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Botó “Tancar” més baix i compacte */
-  .modalHeader button{
-    padding: 8px 10px;
-    border-radius: 12px;
-    line-height: 1;
-    height: auto;
-  }
- 
-  /* =========================
-    MODAL ÀPAT: scroll intern real + compactació
-    (només quan hi ha pickerCols)
-    ========================= */
-
-  /* El modal ha de “contenir” (no deixar sortir res) */
-  .overlay.open .modal:has(.pickerCols){
-    max-height: 92vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;          /* més compacte */
-  }
-
-  /* Header no creix; cos ocupa la resta */
-  .overlay.open .modal:has(.pickerCols) .modalHeader{
-    flex: 0 0 auto;
-    padding: 6px 6px 8px 6px;
-  }
-
-  /* EL CLAU: el cos del modal ha de poder encongir i NO desbordar */
-  .overlay.open .modal:has(.pickerCols) .modalBody{
-    flex: 1 1 auto;
-    min-height: 0;          /* absolutament clau */
-    overflow: hidden;       /* evita que el grid “surti” */
-    margin-top: 6px;
-    display: flex;          /* millor que grid aquí */
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  /* Comentari + botó en 1 fila */
-  .overlay.open .modal:has(.pickerCols) .noteField{
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    align-items: center;
-    padding: 8px;
-  }
-
-  /* Label opcional a dalt */
-  .overlay.open .modal:has(.pickerCols) .noteField label{
-    grid-column: 1 / -1;
-    margin-bottom: 2px;
-    font-size: 11px;
-  }
-
-  /* Camp comentari: 1 línia */
-  .overlay.open .modal:has(.pickerCols) .noteField textarea,
-  .overlay.open .modal:has(.pickerCols) .noteField input[type="text"]{
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
-    resize: none;
-    overflow: hidden;
-    padding: 8px 10px;
-  }
-
-  /* Accions comentari sense marge extra */
-  .overlay.open .modal:has(.pickerCols) .noteActions{
-    margin-top: 0;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  /* Buscador més compacte */
-  .overlay.open .modal:has(.pickerCols) .pickerTop{
-    padding: 0;
-    gap: 8px;
-  }
-  .overlay.open .modal:has(.pickerCols) .pickerSearch{
-    padding: 6px 10px;
-    border-radius: 12px;
-  }
-
-  /* Contenidor de columnes: ocupa la resta i fa scroll VERTICAL del conjunt */
-  .overlay.open .modal:has(.pickerCols) .pickerCols{
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;         /* scroll vertical per arribar a Segons/Únics */
-    -webkit-overflow-scrolling: touch;
-    gap: 8px;
-  }
-
-  /* Cada secció més compacta */
-  .overlay.open .modal:has(.pickerCols) .pickerCol{
-    padding: 8px;
-    border-radius: 14px;
-    min-height: 0;
-  }
-
-  /* Llista interna: menys aire */
-  .overlay.open .modal:has(.pickerCols) .pickerList{
-    gap: 6px;
-  }
-  .weekControlsTop{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* =========================
-    MEAL ICON = BOTÓ D’EDITAR (tablet-friendly)
-    Deixa aquest bloc AL FINAL del <style>
-    ========================= */
-
-  .mealIcon{
-    position: relative;
-    width: 16px;
-    height: 16px;
-    flex: 0 0 16px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border-radius: 7px;
-    background: rgba(255,255,255,0.55);
-    border: 1px solid rgba(0,0,0,0.06);
-
-    user-select: none;
-    cursor: pointer;
-    opacity: 1;
-
-    /* important: evita “ballar” amb marges contradictoris */
-    margin-top: 10px;
-  }
-
-  @media (max-width: 520px){
-    .mealIcon{ margin-top: 8px; }
-  }
-
-  .mealIcon:active{
-    transform: translateY(1px);
-  }
-
-  /* Colors suaus per àpat */
-  .mealIcon.meal-breakfast{ background: rgba(255,255,255,0.55); }
-  .mealIcon.meal-lunch    { background: rgba(245,158,11,0.12); }
-  .mealIcon.meal-snack    { background: rgba(34,197,94,0.12); }
-  .mealIcon.meal-dinner   { background: rgba(59,130,246,0.12); }
-
-  /* Mida de la icona SVG dins (tria UNA mida) */
-  .mealIcon .twSvg{
-    width: 16px;
-    height: 16px;
-    vertical-align: -0.12em;
-  }
-
-  /* Hint ✎ (petit badge) */
-  .mealIcon .editHint{
-    position: absolute;
-    right: -8px;
-    bottom: -8px;
-    width: 18px;
-    height: 18px;
-    border-radius: 999px;
-
-    display: grid;
-    place-items: center;
-
-    font-size: 11px;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid rgba(0,0,0,0.10);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.10);
-  }
-
-  /* Desktop: mostra ✎ només amb hover */
-  @media (hover: hover){
-    .mealIcon .editHint{ opacity: 0; transform: scale(0.95); transition: 120ms ease; }
-    .mealIcon:hover .editHint{ opacity: 1; transform: scale(1); }
-  }
-
-  /* Touch/tablet: deixa’l sempre visible */
-  @media (hover: none){
-    .mealIcon .editHint{ opacity: 1; }
-  }
-
-  /* =========================
-    MODAL "EDITAR ÀPAT" — BLOC ÚNIC
-    Objectius:
-    - header fix
-    - cos amb scroll intern
-    - comentari en 1 fila (input + botó)
-    - columnes amb llistes amb scroll
-    ========================= */
-
-  .overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(17,24,39,0.35);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 18px;
-    z-index: 9990;
-  }
-  .overlay.open{ display:flex; }
-
-  .overlay .modal{
-    width: min(820px, 100%);
-    max-height: 92vh;
-    background: rgba(255,255,255,0.92);
-    border-radius: 20px;
-    border: 1px solid rgba(0,0,0,0.10);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
-    backdrop-filter: blur(6px);
-
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;     /* CLau: res surt per sota */
-    padding: 12px;        /* compacte però usable */
-  }
-
-  .overlay .modalHeader{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap: 10px;
-    padding: 6px 6px 10px 6px;
-    flex: 0 0 auto;
-  }
-
-  /* Títol + data en una sola línia (sense dependre d'estructura fràgil) */
-  .overlay .modalHeader .modalTitleRow{
-    display:flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
-  }
-  .overlay .modalTitle{
-    font-weight: 900;
-    font-size: 15px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .overlay .modalSub{
-    font-size: 12px;
-    opacity: .7;
-    white-space: nowrap;
-  }
-
-  .overlay .modalHeader button{
-    padding: 8px 10px;
-    border-radius: 12px;
-    line-height: 1;
-  }
-
-  .overlay .modalBody{
-    flex: 1 1 auto;
-    min-height: 0;     /* CLau en flex */
-    overflow: hidden;  /* el scroll el fan subzones */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 6px;
-  }
-
-  /* Comentari: 1 fila */
-  .overlay .noteField{
-    background: rgba(255,255,255,0.65);
-    border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 16px;
-    padding: 10px;
-
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    align-items: center;
-  }
-  .overlay .noteField label{
-    grid-column: 1 / -1;
-    display:block;
-    font-size: 11px;
-    color: rgba(0,0,0,0.55);
-    margin-bottom: 4px;
-  }
-
-  /* input/textarea 1 línia */
-  .overlay .noteField textarea,
-  .overlay .noteField input[type="text"]{
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
-    resize: none;
-    overflow: hidden;
-    line-height: 20px;
-    padding: 8px 10px;
-  }
-
-  /* Accions del comentari (si el botó és aquí dins) */
-  .overlay .noteActions{
-    margin-top: 0;
-    display:flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  .overlay .noteActions button{
-    white-space: nowrap;
-  }
-
-  /* Cercador plats */
-  .overlay .pickerTop{
-    display:flex;
-    gap: 10px;
-    align-items:center;
-    flex-wrap: wrap;
-    padding: 2px 2px;
-  }
-  .overlay .pickerSearch{
-    flex: 1 1 220px;
-    display:flex;
-    gap: 8px;
-    align-items:center;
-    background: rgba(255,255,255,0.70);
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 14px;
-    padding: 8px 10px;
-  }
-  .overlay .pickerSearch input{
-    border:0;
-    outline:none;
-    background:transparent;
-    width:100%;
-    font-size: 14px;
-  }
-
-  /* Columnes: el contenidor fa scroll vertical si cal */
-  .overlay .pickerCols{
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;                     /* scroll del conjunt */
-    -webkit-overflow-scrolling: touch;
-
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr 200px 150px;
+    grid-template-areas: "name icon cat";
+    gap: 12px;
     align-items: start;
   }
 
-  /* Cada columna: header + llista scrollable */
-  .overlay .pickerCol{
-    background: rgba(255,255,255,0.55);
-    border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 16px;
-    padding: 10px;
-    min-height: 0;
-
-    display:flex;
-    flex-direction: column;
-    gap: 10px;
-    overflow: hidden;                   /* evita que la llista surti */
-  }
-  .overlay .pickerColHeader{
-    display:flex;
-    align-items:center;
-    justify-content: space-between;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(4px);
-    z-index: 1;
+  @media (max-width: 900px) {
+    .recipeHeaderGrid {
+      grid-template-columns: 1fr;
+      grid-template-areas: "name" "icon" "cat";
+    }
   }
 
-  .overlay .pickerList{
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;                     /* scroll intern */
-    display:flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-right: 2px;
+  .recipeHeaderGrid .rhName { 
+    grid-area: name; 
   }
 
-  /* Responsive */
-  @media (max-width: 720px){
-    .overlay .modal{ padding: 10px; border-radius: 18px; }
-    .overlay .pickerCols{ grid-template-columns: 1fr; }
-  }
-
-  /* =========================
-    MEAL SLOT FULL-WIDTH + LABEL
-    (tablet-friendly, guanya espai)
-    ========================= */
-
-  .mealRow{
-    display: block;          /* ja no és 2 columnes */
-    margin-bottom: 12px;
-  }
-
-  .mealLabel{
-    margin-top: 6px;     /* abans segurament era més alt */
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: rgba(0,0,0,0.55);
-    font-weight: 700;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .2px;
-    margin: 0 0 6px 8px;     /* una mica d’aire a l’esquerra */
-    user-select: none;
-  }
-
-  /* El “slot” clicable d’àpat */
-  .mealBody{
-    position: relative;
-    cursor: pointer;
-
-    /* full-width amb padding */
-    width: 100%;
-    border-radius: 14px;
-    border: 1px solid rgba(0,0,0,0.06);
-    background: rgba(255,255,255,0.55);
-    padding: 10px 10px;
-
-    transition: background .12s ease, transform .12s ease;
-  }
-
-  /* Hover (desktop) */
-  @media (hover: hover){
-    .mealBody:hover{ background: rgba(255,255,255,0.75); }
-  }
-
-  /* Zona “segura” de clic a l’esquerra (sempre lliure de cards) */
-  .mealCards{
-    padding-left: 15px;   /* aquí guanyes: cards indentades */
+  .recipeHeaderGrid .rhIcon { 
+    grid-area: icon;
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
 
-  /* Indicador subtil que és editable (sense llapis) */
-  .mealBody::after{
-    content: "Toca per editar";
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: 12px;
-    font-size: 11px;
-    color: rgba(0,0,0,0.30);
-    pointer-events: none;
-    white-space: nowrap;
+  .recipeHeaderGrid .rhCat { 
+    grid-area: cat; 
   }
 
-  /* Quan hi ha contingut (cards o nota), amaguem el “Toca per editar” */
-  .mealBody.hasContent::after{
-    content: "";
+  /* Fix icon picker to fit in grid cell */
+  .rhIcon .iconPickerGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 6px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    margin: 0;
   }
 
-  /* Si vols, l’indicador només en touch */
-  @media (hover: hover){
-    .mealBody::after{ content: ""; }            /* desktop: no cal text */
-    .mealBody:focus-visible{
-      outline: 3px solid rgba(26,115,232,0.25);
-      outline-offset: 2px;
-    }
-  }
-  @media (hover: none){
-    .mealBody::after{ content: "Toca per editar"; } /* touch sí */
-  }
-
-  /* Les cards han de seguir sent clicables sense obrir el modal d’àpat */
-  .card{ cursor: pointer; }
-  
-  .titleRow{
-    display:flex;
-    align-items: baseline;
-    gap: 10px;
-    flex-wrap: wrap;
+  .rhIcon .iconPickerBtn {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 2px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 120ms ease;
   }
 
-  .subtitleInline{
-    font-size: 12px;
-    opacity: .75;
+  .rhIcon .iconPickerBtn:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.05);
+    transform: scale(1.05);
   }
 
-  /* Visual Icon Picker */
+  .rhIcon .iconPickerBtn.selected {
+    border-color: rgba(59,130,246,0.8);
+    background: rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -1888,8 +1194,9 @@
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 8px;
+    max-width: 350px;
   }
-  
+
   .iconPickerBtn {
     width: 100%;
     aspect-ratio: 1;
@@ -1904,13 +1211,13 @@
     font-size: 24px;
     transition: all 120ms ease;
   }
-  
+
   .iconPickerBtn:hover {
     border-color: rgba(59,130,246,0.35);
     background: rgba(59,130,246,0.05);
     transform: scale(1.05);
   }
-  
+
   .iconPickerBtn.selected {
     border-color: rgba(59,130,246,0.8);
     background: rgba(59,130,246,0.15);
