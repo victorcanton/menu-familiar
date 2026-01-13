@@ -1548,11 +1548,30 @@
       const response = await apiFetch(url, options);
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || `API error: ${response.status}`);
+        let errorMsg = `API error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          // Si no es JSON, usar el texto
+          try {
+            const text = await response.text();
+            if (text) errorMsg = text;
+          } catch (e2) {}
+        }
+        console.error(`${fn} failed:`, errorMsg);
+        throw new Error(errorMsg);
       }
 
-      return await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        console.error(`${fn} response not valid JSON:`, e);
+        throw new Error(`Response not JSON: ${e.message}`);
+      }
+
+      return result;
     }
 
     let DIRTY_SLOTS = {};      // { slot_id: {date, meal, recipe_id} | {slot_id, __delete:true} }
@@ -2079,29 +2098,37 @@
           return;
         }
         
+        console.log("Loading recipes and week data...");
+        
         // Now load data with proper error handling
         try {
           await loadRecipesOnce();
+          console.log("Recipes loaded:", RECIPES.length, "recipes");
         } catch (e) {
           console.error("Error loading recipes:", e);
-          toast("error", "Error carregant receptes", String(e.message));
+          toast("error", "Error carregant receptes", e.message);
         }
         
         try {
           await loadWeekData();
+          console.log("Week data loaded:", PLAN.length, "items");
         } catch (e) {
           console.error("Error loading week data:", e);
-          toast("error", "Error carregant dades", String(e.message));
+          toast("error", "Error carregant dades", e.message);
         }
         
+        console.log("Rendering board with WEEK_START_ISO:", WEEK_START_ISO);
         renderBoard(WEEK_START_ISO);
+        
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
         scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
         syncMealHeights();
+        
+        console.log("Boot complete");
       } catch (e) {
         console.error("Boot error:", e);
-        toast("error", "Error en la inicialització", String(e.message));
+        toast("error", "Error en la inicialització", e.message);
       } finally {
         hideLoading();
       }
