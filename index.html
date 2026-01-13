@@ -1124,7 +1124,7 @@
 
   .recipeHeaderGrid{
     display: grid;
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: 120px 1fr 60px;
     gap: 12px;
     align-items: start;
   }
@@ -1141,24 +1141,24 @@
     width: 100%;
   }
 
-  .recipeHeaderGrid .rhIcon { 
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    grid-column: 2;
-    grid-row: 2;
-  }
-
   .recipeHeaderGrid .rhCat { 
     grid-column: 1;
     grid-row: 2;
     width: 100%;
   }
 
-  /* Fix icon picker to fit in grid cell */
+  .recipeHeaderGrid .rhIcon { 
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Fix icon picker to fit in grid cell - 4 ROWS x 6 COLUMNS */
   .rhIcon .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 6px;
     padding: 6px;
     background: rgba(255,255,255,0.85);
@@ -1178,7 +1178,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     transition: all 120ms ease;
   }
 
@@ -1194,6 +1194,22 @@
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
 
+  .rhIcon .iconPreview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.85);
+    border: 2px solid rgba(0,0,0,0.08);
+  }
+
+  .rhIcon .iconPreview .twSvg {
+    width: 28px;
+    height: 28px;
+  }
+
   /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
@@ -1206,7 +1222,6 @@
     margin-bottom: 8px;
     max-width: 350px;
   }
-
   .rhIcon .iconPreview {
     display: flex;
     align-items: center;
