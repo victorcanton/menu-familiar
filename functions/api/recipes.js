@@ -23,6 +23,45 @@ function generateId(prefix) {
   return id;
 }
 
+/**
+ * Valida y normaliza el array de iconos
+ * @param {string|array} icons - JSON string o array
+ * @returns {string|null} - JSON string si válido, null si vacío o inválido
+ */
+function validateAndNormalizeIcons(icons) {
+  if (!icons) return null;
+
+  let iconArray = icons;
+
+  // Si es string, intentar parsear como JSON
+  if (typeof icons === "string") {
+    if (!icons.trim()) return null;
+    try {
+      iconArray = JSON.parse(icons);
+    } catch (e) {
+      // Si falla, asumir que es un string single (backwards compatibility)
+      iconArray = [icons.trim()];
+    }
+  }
+
+  // Asegurar que es array
+  if (!Array.isArray(iconArray)) {
+    iconArray = [String(iconArray)];
+  }
+
+  // Filtrar vacíos, limitar a 3, y convertir a strings
+  iconArray = iconArray
+    .map(i => String(i).trim())
+    .filter(i => i.length > 0)
+    .slice(0, 3); // Máximo 3 iconos
+
+  // Si quedó vacío, retornar null
+  if (iconArray.length === 0) return null;
+
+  // Retornar como JSON string
+  return JSON.stringify(iconArray);
+}
+
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -67,13 +106,23 @@ export async function onRequestGet({ request, env }) {
     }
 
     const result = await env.DB
-      .prepare("SELECT id, name, category, icon, ingredients, steps, video_url, created_at FROM recipes WHERE family_id = ?1 ORDER BY name")
+      .prepare(`
+        SELECT 
+          id, name, category, icon, icons, ingredients, steps, video_url, created_at 
+        FROM recipes 
+        WHERE family_id = ?1 
+        ORDER BY name
+      `)
       .bind(family_id)
       .all();
 
     console.log("Query result:", result);
 
-    const recipes = result.results || [];
+    const recipes = (result.results || []).map(r => ({
+      ...r,
+      // Para compatibilidad: si no hay icons pero sí icon, usar icon
+      icons: r.icons || (r.icon ? JSON.stringify([r.icon]) : null),
+    }));
     
     // Count usage of each recipe in current menu
     const countResult = await env.DB
@@ -110,23 +159,38 @@ export async function onRequestPost({ request, env }) {
 
     const family_id = auth.family_id;
     const body = await request.json();
-    const { id, name, category, icon, ingredients, steps, video_url } = body;
+    const { id, name, category, icon, icons, ingredients, steps, video_url } = body;
 
     if (!name || !name.trim()) {
       return json({ ok: false, error: "Name is required" }, 400);
     }
 
+    // Validar y normalizar iconos
+    // Prioridad: icons (nuevo) > icon (antiguo)
+    let iconsToStore = validateAndNormalizeIcons(icons || icon);
+
     const now = new Date().toISOString();
 
     if (id) {
       // Update existing recipe
+      // Mantener el campo 'icon' como null (deprecated) y usar 'icons'
       await env.DB
         .prepare(`
           UPDATE recipes 
-          SET name = ?1, category = ?2, icon = ?3, ingredients = ?4, steps = ?5, video_url = ?6, updated_at = ?7
+          SET name = ?1, category = ?2, icons = ?3, ingredients = ?4, steps = ?5, video_url = ?6, updated_at = ?7
           WHERE id = ?8 AND family_id = ?9
         `)
-        .bind(name.trim(), category || null, icon || null, ingredients || null, steps || null, video_url || null, now, id, family_id)
+        .bind(
+          name.trim(),
+          category || null,
+          iconsToStore,
+          ingredients || null,
+          steps || null,
+          video_url || null,
+          now,
+          id,
+          family_id
+        )
         .run();
 
       return json({ ok: true, id });
@@ -135,10 +199,21 @@ export async function onRequestPost({ request, env }) {
       const newId = generateId("rec");
       await env.DB
         .prepare(`
-          INSERT INTO recipes (id, family_id, name, category, icon, ingredients, steps, video_url, created_at, updated_at)
+          INSERT INTO recipes (id, family_id, name, category, icons, ingredients, steps, video_url, created_at, updated_at)
           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
         `)
-        .bind(newId, family_id, name.trim(), category || null, icon || null, ingredients || null, steps || null, video_url || null, now, now)
+        .bind(
+          newId,
+          family_id,
+          name.trim(),
+          category || null,
+          iconsToStore,
+          ingredients || null,
+          steps || null,
+          video_url || null,
+          now,
+          now
+        )
         .run();
 
       return json({ ok: true, id: newId });

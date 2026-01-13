@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS recipes (
   meal_type    TEXT,       -- (kept for compatibility)
   -- sheet fields
   category     TEXT,       -- e.g. "Segon", "Plat únic", "Esmorzar"
-  icon         TEXT,       -- small emoji/key stored in sheet
+  icon         TEXT,       -- DEPRECATED: kept for backwards compatibility
+  icons        TEXT,       -- JSON array de keys ["soup","salad",...] máx 3
   ingredients  TEXT,
   steps        TEXT,
   video_url    TEXT,
@@ -44,10 +45,6 @@ CREATE TABLE IF NOT EXISTS recipes (
   archived_at  TEXT,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_recipes_family ON recipes(family_id);
-CREATE INDEX IF NOT EXISTS idx_recipes_family_name ON recipes(family_id, name);
-
 -- =========================
 -- Menu items (weekly planning)
 -- One row = one dish within a date+meal, ordered by position

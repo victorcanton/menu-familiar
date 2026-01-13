@@ -1265,7 +1265,32 @@
     background: rgba(59,130,246,0.15);
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
+  .iconPickerHelper {
+    font-size: 12px;
+    color: rgba(0,0,0,0.55);
+    margin-bottom: 6px;
+  }
 
+  .rhIcon .iconPreview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: auto;
+    min-width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.85);
+    border: 2px solid rgba(0,0,0,0.08);
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    padding: 0 8px;
+  }
+
+  .rhIcon .iconPreview .twSvg {
+    width: 24px;
+    height: 24px;
+  }
   </style>
 
 </head>
@@ -1839,7 +1864,26 @@
             if (!slot || !slot.recipe_id) return "";
 
             const r = findRecipe(slot.recipe_id);
-            const icon = r ? twemojiSvgIcon(recipeIconKey(r)) : twemojiSvgIcon("plate");
+            // Soportar múltiples iconos
+            let icons = "";
+            if (r) {
+              let iconKeys = [];
+              if (r.icons) {
+                try {
+                  iconKeys = JSON.parse(r.icons);
+                } catch (e) {}
+              } else if (r.icon) {
+                iconKeys = [r.icon];
+              }
+              
+              if (iconKeys.length === 0) {
+                iconKeys = [recipeIconKey(r)];
+              }
+              
+              icons = iconKeys.map(key => twemojiSvgIcon(key)).join("");
+            } else {
+              icons = twemojiSvgIcon("plate");
+            }
 
             const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
 
@@ -1849,7 +1893,7 @@
             return `
               <div class="card ${cls}"
                   onclick="openRecipeViewer('${slot.recipe_id}', event)">
-                <span class="cIcon">${icon}</span>
+                <span class="cIcon">${icons}</span>
                 <span class="cName">${name}</span>
               </div>
             `;
@@ -1941,8 +1985,9 @@
       const category = catSelect.value;
       if (!name) { hideLoading(); return; }
 
-      const res = await gasp("api_upsertRecipe", { name, category, icon: (document.getElementById("newIconValue").value || "").trim() });
-
+      const iconVal = (document.getElementById("newIconValue").value || "").trim();
+      const icons = iconVal ? JSON.parse(iconVal) : [];
+      const res = await gasp("api_upsertRecipe", { name, category, icons });
       // Si ha anat bé
       if (res && res.ok !== false) {
         nameInput.value = "";        // buidar camp
@@ -2473,15 +2518,25 @@
       document.getElementById("recipeEmpty").style.display = "none";
       document.getElementById("recipeForm").style.display = "flex";
 
-      // Update the icon picker
-      const iconValue = String(r.icon || "");
-      document.getElementById("rIconValue").value = iconValue;
-      selectIconInPicker(document.getElementById("rIconPicker"), iconValue);
-      
+      // Soportar ambos formatos: campo "icon" antiguo y "icons" nuevo
+      let iconKeys = [];
+      if (r.icons) {
+        try {
+          iconKeys = JSON.parse(r.icons);
+        } catch (e) {
+          console.warn("Error parsing icons JSON:", e);
+        }
+      } else if (r.icon) {
+        iconKeys = [r.icon];
+      }
+
+      document.getElementById("rIconValue").value = iconKeys.length > 0 ? JSON.stringify(iconKeys) : "";
+      selectIconsInPicker(document.getElementById("rIconPicker"), iconKeys);
+
       // Update preview
       const previewEl = document.getElementById("rIconPreview");
       if (previewEl) {
-        previewEl.innerHTML = twemojiSvgIcon(iconValue) || twemojiSvgIcon("plate");
+        previewEl.innerHTML = iconKeys.map(key => twemojiSvgIcon(key)).join("");
       }
       
       document.getElementById("rName").value = String(r.name || "");
@@ -2498,7 +2553,7 @@
 
       const payload = {
         id: SELECTED_RECIPE_ID,
-        icon: (document.getElementById("rIconValue").value || "").trim(),
+        icons: (document.getElementById("rIconValue").value || "").trim(),
         name: (document.getElementById("rName").value || "").trim(),
         category: (document.getElementById("rCategory").value || "").trim(),
         ingredients: (document.getElementById("rIngredients").value || "").trim(),
@@ -2759,25 +2814,27 @@
         
         btn.addEventListener("click", (e) => {
           e.preventDefault();
-          // Remove selection from all buttons
-          pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
-          // Select this button
-          btn.classList.add("selected");
-          // Store the value and trigger preview update
-          const previewEl = document.getElementById("newIconPreview");
-          if (previewEl) {
-            previewEl.innerHTML = iconHtml;
+          // Selección múltiple: toggle
+          const isSelected = btn.classList.contains("selected");
+          const selectedBtns = Array.from(pickerEl.querySelectorAll(".iconPickerBtn.selected"));
+          
+          // Si intenta seleccionar el 4º icono, mostrar error
+          if (!isSelected && selectedBtns.length >= 3) {
+            toast("error", "Màxim 3 icones", "No pots afegir més de 3 icones.");
+            return;
           }
-          // Store value for saving (in hidden input)
-          const hiddenInput = document.getElementById("newIconValue");
-          if (hiddenInput) {
-            hiddenInput.value = key === "auto" ? "" : key;
-          }
+          
+          // Toggle selección
+          btn.classList.toggle("selected");
+          
+          // Actualizar preview y valor oculto
+          updateIconPreviewAndValue("newIconPreview", "newIconValue", pickerEl);
         });
         
         pickerEl.appendChild(btn);
       }
     }
+
     function fillIconPicker(pickerEl, { includeAuto = true } = {}) {
       if (!pickerEl) return;
 
@@ -2797,25 +2854,44 @@
         
         btn.addEventListener("click", (e) => {
           e.preventDefault();
-          // Remove selection from all buttons
-          pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
-          // Select this button
-          btn.classList.add("selected");
-          // Store the value and trigger preview update
-          const previewEl = document.getElementById("rIconPreview");
-          if (previewEl) {
-            previewEl.innerHTML = iconHtml;
+          // Selección múltiple: toggle
+          const isSelected = btn.classList.contains("selected");
+          const selectedBtns = Array.from(pickerEl.querySelectorAll(".iconPickerBtn.selected"));
+          
+          // Si intenta seleccionar el 4º icono, mostrar error
+          if (!isSelected && selectedBtns.length >= 3) {
+            toast("error", "Màxim 3 icones", "No pots afegir més de 3 icones.");
+            return;
           }
-          // Store value for saving (in a hidden input)
-          const hiddenInput = document.getElementById("rIconValue");
-          if (hiddenInput) {
-            hiddenInput.value = key === "auto" ? "" : key;
-          }
+          
+          // Toggle selección
+          btn.classList.toggle("selected");
+          
+          // Actualizar preview y valor oculto
+          updateIconPreviewAndValue("rIconPreview", "rIconValue", pickerEl);
+          
           // Mark form as dirty
           setRecipeDirty(true);
         });
         
         pickerEl.appendChild(btn);
+      }
+    }
+
+    function updateIconPreviewAndValue(previewId, valueId, pickerEl) {
+      const selectedBtns = Array.from(pickerEl.querySelectorAll(".iconPickerBtn.selected"));
+      const selectedKeys = selectedBtns.map(b => b.dataset.iconKey);
+      
+      // Actualizar preview: mostrar los iconos seleccionados
+      const previewEl = document.getElementById(previewId);
+      if (previewEl) {
+        previewEl.innerHTML = selectedKeys.map(key => twemojiSvgIcon(key)).join("");
+      }
+      
+      // Guardar com a JSON en el input oculto
+      const hiddenInput = document.getElementById(valueId);
+      if (hiddenInput) {
+        hiddenInput.value = selectedKeys.length > 0 ? JSON.stringify(selectedKeys) : "";
       }
     }
 
@@ -2832,7 +2908,6 @@
         fillIconPicker(recipePickerEl, { includeAuto: true });
       }
     }
-
 
     function selectIconInPicker(pickerEl, iconKey) {
       if (!pickerEl) return;
@@ -3106,7 +3181,10 @@
                 </div>
 
                 <div class="rhIcon">
-                  <div id="rIconPicker" class="iconPickerGrid"></div>
+                  <div>
+                    <div class="iconPickerHelper">Pots seleccionar fins a 3 icones.</div>
+                    <div id="rIconPicker" class="iconPickerGrid"></div>
+                  </div>
                   <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
                 </div>
               </div>
