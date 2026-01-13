@@ -2624,10 +2624,11 @@
       if (topBtn) topBtn.disabled = true;
 
       try {
+        const { token } = getAuth();
         const response = await fetch(`/api/recipes?id=${encodeURIComponent(SELECTED_RECIPE_ID)}`, {
           method: "DELETE",
           headers: {
-            "Authorization": `Bearer ${TOKEN}`,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
