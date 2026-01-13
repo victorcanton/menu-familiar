@@ -402,8 +402,9 @@
     font-size: 12.5px;
     background: rgba(255,255,255,0.65);
     display:flex;
+    flex-direction: column;
     gap:8px;
-    align-items:center;
+    align-items:flex-start;
   }
   .card.primer {
     background:#fff7c7;
@@ -418,7 +419,8 @@
     border-left: 4px solid #22c55e;
   }
 
-  .cIcon{ line-height:1; }
+  .cIcon{ line-height:1; display: flex; gap: 4px; flex-wrap: wrap; }
+  .iconItem{ line-height: 1; }
   .cName{ min-width:0; }
   /* Popup */
 
@@ -1899,9 +1901,9 @@
                 iconKeys = [recipeIconKey(r)];
               }
               
-              icons = iconKeys.map(key => twemojiSvgIcon(key)).join("");
+              icons = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
             } else {
-              icons = twemojiSvgIcon("plate");
+              icons = `<span class="iconItem">${twemojiSvgIcon("plate")}</span>`;
             }
 
             const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
