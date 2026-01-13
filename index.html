@@ -2075,14 +2075,14 @@
           await loadRecipesOnce();
         } catch (e) {
           console.error("Error loading recipes:", e);
-          toast("Error carregant receptes", "error");
+          toast("error", "Error carregant receptes", String(e.message));
         }
         
         try {
           await loadWeekData();
         } catch (e) {
           console.error("Error loading week data:", e);
-          toast("Error carregant dades de la setmana", "error");
+          toast("error", "Error carregant dades", String(e.message));
         }
         
         renderBoard(WEEK_START_ISO);
@@ -2092,13 +2092,11 @@
         syncMealHeights();
       } catch (e) {
         console.error("Boot error:", e);
-        toast("Error en la inicialització", "error");
+        toast("error", "Error en la inicialització", String(e.message));
       } finally {
         hideLoading();
       }
     })();
-
-
 
 
     let OPEN_CELL = null;
