@@ -1126,7 +1126,7 @@
     display: grid;
     grid-template-columns: 2fr 100px 1fr 60px;
     gap: 10px;
-    align-items: flex-start;
+    align-items: center;
   }
 
   @media (max-width: 900px) {
@@ -1138,16 +1138,21 @@
 
   .recipeHeaderGrid .rhName { 
     width: 100%;
+    grid-column: 1;
   }
 
   .recipeHeaderGrid .rhCat { 
     width: 100%;
+    grid-column: 2;
   }
 
   .recipeHeaderGrid .rhIcon { 
+    grid-column: 3;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 6px;
+    align-items: center;
+    width: 100%;
   }
 
   /* Fix icon picker to fit in grid cell - 4 ROWS x 6 COLUMNS */
@@ -1160,6 +1165,7 @@
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin: 0;
+    flex: 1;
   }
 
   .rhIcon .iconPickerBtn {
@@ -1198,6 +1204,7 @@
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
     border: 2px solid rgba(0,0,0,0.08);
+    flex: 0 0 auto;
   }
 
   .rhIcon .iconPreview .twSvg {
