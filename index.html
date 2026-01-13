@@ -2057,16 +2057,42 @@
       try{
         initDefaultWeek();
         await preloadTwemojiSvgs();
-        initializeIconPickers();  // <-- ADD THIS LINE
-        await loadRecipesOnce();
-        await loadWeekData();
+        initializeIconPickers();
+        
+        // Ensure auth is set up first
+        await bootstrapAuth();
+        
+        // Check if user is authenticated
+        const { token } = getAuth();
+        if (!token) {
+          console.log("User not authenticated - skipping data load");
+          hideLoading();
+          return;
+        }
+        
+        // Now load data with proper error handling
+        try {
+          await loadRecipesOnce();
+        } catch (e) {
+          console.error("Error loading recipes:", e);
+          toast("Error carregant receptes", "error");
+        }
+        
+        try {
+          await loadWeekData();
+        } catch (e) {
+          console.error("Error loading week data:", e);
+          toast("Error carregant dades de la setmana", "error");
+        }
+        
         renderBoard(WEEK_START_ISO);
-        // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
         scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
-
         syncMealHeights();
+      } catch (e) {
+        console.error("Boot error:", e);
+        toast("Error en la inicialització", "error");
       } finally {
         hideLoading();
       }
