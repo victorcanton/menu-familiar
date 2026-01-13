@@ -1977,43 +1977,58 @@
 
     async function addRecipe(){
       showLoading();
-      const nameInput = document.getElementById("newName");
-      const catSelect = document.getElementById("newCat");
-      const iconSel = document.getElementById("newIcon");
-      let icon = (iconSel?.value || "").trim();
-      const name = nameInput.value.trim();
-      const category = catSelect.value;
-      if (!name) { hideLoading(); return; }
+      try {
+        const nameInput = document.getElementById("newName");
+        const catSelect = document.getElementById("newCat");
+        const name = nameInput.value.trim();
+        const category = catSelect.value;
+        
+        if (!name) { 
+          hideLoading(); 
+          toast("error", "Error", "El nom és obligatori");
+          return; 
+        }
 
-      const iconVal = (document.getElementById("newIconValue").value || "").trim();
-      const icons = iconVal ? JSON.parse(iconVal) : [];
-      const res = await gasp("api_upsertRecipe", { name, category, icons });
-      // Si ha anat bé
-      if (res && res.ok !== false) {
-        nameInput.value = "";        // buidar camp
-        //nameInput.focus();           // tornar el cursor al camp
-        // 🔑 AFEGIT: refresquem receptes en memòria
-        RECIPES = (await gasp("api_getRecipes"))?.recipes
-          .map(r => ({ ...r, count: Number(r.count || 0) }));
+        // Obtenir iconos del input oculto (como JSON string)
+        const iconVal = (document.getElementById("newIconValue").value || "").trim();
+        let icons = [];
+        if (iconVal) {
+          try {
+            icons = JSON.parse(iconVal);
+          } catch (e) {
+            console.warn("Error parsing icons:", e);
+            icons = [];
+          }
+        }
+        
+        const res = await gasp("api_upsertRecipe", { name, category, icons });
+        
+        if (res && res.ok !== false) {
+          nameInput.value = "";
+          
+          // Refrescar receptes en memòria
+          RECIPES = (await gasp("api_getRecipes"))?.recipes
+            .map(r => ({ ...r, count: Number(r.count || 0) })) || [];
+          
+          toast("success", "Recepta afegida", "La recepta s'ha creat correctament");
+        } else {
+          toast("error", "Error", res.error || "No s'ha pogut afegir la recepta");
+        }
+
+        await loadWeekData();
+        renderBoard(WEEK_START_ISO);
+        
+        const todayISO = iso(new Date());
+        const dates = buildDates(WEEK_START_ISO);
+        scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
+
+        syncMealHeights();
+      } catch (err) {
+        console.error("addRecipe error:", err);
+        toast("error", "Error", String(err));
+      } finally {
+        hideLoading();
       }
-
-      await loadWeekData();
-      renderBoard(WEEK_START_ISO);
-      // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
-      const todayISO = iso(new Date());
-      const dates = buildDates(WEEK_START_ISO);
-      scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
-
-      syncMealHeights();
-      hideLoading();
-    }
-
-
-    function initDefaultWeek(){
-      const today = new Date();
-      const monday = startOfWeekMonday(today);
-      WEEK_START_ISO = iso(monday);
-      document.getElementById("weekLabel").textContent = formatWeekLabel(monday);
     }
 
 
@@ -2571,7 +2586,7 @@
 
 
       try{
-        const res = await gasp("api_updateRecipeDetails", payload);
+        const res = await gasp("api_upsertRecipe", payload);
         if (res?.ok === false) throw new Error(res.error || "Error");
 
         // Recarrega RECIPES (per veure canvis a icona/nom al picker i al board)
@@ -2895,6 +2910,37 @@
       }
     }
 
+    function selectIconsInPicker(pickerEl, iconKeys) {
+      if (!pickerEl) return;
+      
+      // Limpiar selecciones previas
+      pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
+      
+      // iconKeys puede ser: null, "", [], o array de strings
+      if (!iconKeys || iconKeys.length === 0) return;
+      
+      // Si es string (JSON), parsearlo
+      let keys = iconKeys;
+      if (typeof iconKeys === "string") {
+        try {
+          keys = JSON.parse(iconKeys);
+        } catch (e) {
+          // Si falla, asumir que es un string single
+          keys = [iconKeys];
+        }
+      }
+      
+      // Seleccionar cada icono
+      if (Array.isArray(keys)) {
+        keys.forEach(key => {
+          const btn = pickerEl.querySelector(`[data-icon-key="${key}"]`);
+          if (btn) {
+            btn.classList.add("selected");
+          }
+        });
+      }
+    }
+
     function initializeIconPickers() {
       // New recipe icon picker
       const newPickerEl = document.getElementById("newIconPicker");
@@ -2919,6 +2965,37 @@
       const btn = pickerEl.querySelector(`[data-icon-key="${iconKey || "auto"}"]`);
       if (btn) {
         btn.classList.add("selected");
+      }
+    }
+
+    function selectIconsInPicker(pickerEl, iconKeys) {
+      if (!pickerEl) return;
+      
+      // Limpiar selecciones previas
+      pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
+      
+      // iconKeys puede ser: null, "", [], o array de strings
+      if (!iconKeys || iconKeys.length === 0) return;
+      
+      // Si es string (JSON), parsearlo
+      let keys = iconKeys;
+      if (typeof iconKeys === "string") {
+        try {
+          keys = JSON.parse(iconKeys);
+        } catch (e) {
+          // Si falla, asumir que es un string single
+          keys = [iconKeys];
+        }
+      }
+      
+      // Seleccionar cada icono
+      if (Array.isArray(keys)) {
+        keys.forEach(key => {
+          const btn = pickerEl.querySelector(`[data-icon-key="${key}"]`);
+          if (btn) {
+            btn.classList.add("selected");
+          }
+        });
       }
     }
 
