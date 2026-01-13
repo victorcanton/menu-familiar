@@ -3009,11 +3009,18 @@
 
     async function apiFetch(path, options = {}) {
       const token = localStorage.getItem("mf_token");
+      
+      if (!token) {
+        console.warn("apiFetch: No token in localStorage. User may not be authenticated.");
+      }
+      
       const headers = {
         ...(options.headers || {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-    
+
+      console.log("apiFetch:", { path, tokenExists: !!token, headers });
+      
       const res = await fetch(path, { ...options, headers });
       return res;
     }
@@ -3061,16 +3068,6 @@
         loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
       }
-    }
-  
-    async function apiFetch(path, options = {}) {
-      const token = localStorage.getItem("mf_token");
-      const headers = {
-        ...(options.headers || {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
-      const res = await fetch(path, { ...options, headers });
-      return res;
     }
   
     async function bootstrapAuth() {

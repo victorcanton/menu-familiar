@@ -154,11 +154,14 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
+    console.log("POST /api/recipes - Starting");
     const auth = await authenticate(request, env);
     if (!auth.ok) return json({ ok: false, error: auth.error }, 401);
 
     const family_id = auth.family_id;
     const body = await request.json();
+    console.log("POST body:", body);
+    
     const { id, name, category, icon, icons, ingredients, steps, video_url } = body;
 
     if (!name || !name.trim()) {
@@ -168,12 +171,13 @@ export async function onRequestPost({ request, env }) {
     // Validar y normalizar iconos
     // Prioridad: icons (nuevo) > icon (antiguo)
     let iconsToStore = validateAndNormalizeIcons(icons || icon);
+    console.log("Icons to store:", iconsToStore);
 
     const now = new Date().toISOString();
 
     if (id) {
       // Update existing recipe
-      // Mantener el campo 'icon' como null (deprecated) y usar 'icons'
+      console.log("Updating recipe:", id);
       await env.DB
         .prepare(`
           UPDATE recipes 
@@ -193,10 +197,13 @@ export async function onRequestPost({ request, env }) {
         )
         .run();
 
+      console.log("Recipe updated successfully");
       return json({ ok: true, id });
     } else {
       // Create new recipe
       const newId = generateId("rec");
+      console.log("Creating new recipe:", newId);
+      
       await env.DB
         .prepare(`
           INSERT INTO recipes (id, family_id, name, category, icons, ingredients, steps, video_url, created_at, updated_at)
@@ -216,12 +223,18 @@ export async function onRequestPost({ request, env }) {
         )
         .run();
 
+      console.log("Recipe created successfully");
       return json({ ok: true, id: newId });
     }
   } catch (err) {
     console.error("Recipe POST error:", err);
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
+}
+
+export async function onRequestPut({ request, env }) {
+  // PUT es alias de POST para actualizar
+  return onRequestPost({ request, env });
 }
 
 export async function onRequestDelete({ request, env }) {
