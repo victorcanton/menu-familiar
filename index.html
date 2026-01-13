@@ -1125,40 +1125,7 @@
   }
 
   .recipeHeaderGrid{
-    display: grid;
-    grid-template-columns: 2fr 100px 1fr 60px;
-    gap: 10px;
-    align-items: center;
-  }
-
-  @media (max-width: 900px) {
-    .recipeHeaderGrid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-  }
-
-  .recipeHeaderGrid .rhName { 
-    width: 100%;
-    grid-column: 1;
-  }
-
-  .recipeHeaderGrid .rhName input { 
-    width: 100%;
-  }
-
-  .recipeHeaderGrid .rhCat { 
-    width: 100%;
-    grid-column: 2;
-  }
-
-  .recipeHeaderGrid .rhIcon { 
-    grid-column: 3;
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    align-items: center;
-    width: 100%;
+    display: contents;
   }
 
   /* Fix icon picker to fit in grid cell - 4 ROWS x 6 COLUMNS */
@@ -2629,6 +2596,69 @@
       setRecipeDirty(false);
     }
 
+    function deleteRecipeWithConfirmation() {
+      if (!SELECTED_RECIPE_ID) return;
+      
+      const r = RECIPES.find(x => String(x.id) === String(SELECTED_RECIPE_ID));
+      if (!r) return;
+      
+      const recipeName = String(r.name || "Recepta");
+      
+      // Crear diálogo de confirmación
+      const confirmed = confirm(`¿Estás seguro de que deseas borrar "${recipeName}"?\n\nEsta acción no se puede deshacer.`);
+      
+      if (confirmed) {
+        deleteRecipe();
+      }
+    }
+
+    async function deleteRecipe() {
+      if (!SELECTED_RECIPE_ID) return;
+
+      document.getElementById("rStatus").textContent = "Borrando...";
+      showLoading({ silent: true });
+
+      const topBtn = document.getElementById("recipeSaveTopBtn");
+      const topStatus = document.getElementById("recipeTopStatus");
+      if (topStatus) topStatus.textContent = "Borrando...";
+      if (topBtn) topBtn.disabled = true;
+
+      try {
+        const response = await fetch(`/api/recipes?id=${encodeURIComponent(SELECTED_RECIPE_ID)}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Error borrando la receta");
+        }
+
+        // Recargar recetas
+        await loadRecipesFromServer();
+        
+        document.getElementById("rStatus").textContent = "Borrada.";
+        SELECTED_RECIPE_ID = null;
+        
+        // Cerrar el formulario y volver a la lista
+        document.getElementById("recipeForm").style.display = "none";
+        document.getElementById("recipeEmpty").style.display = "block";
+        renderRecipeList();
+        
+        toast("success", "Receta borrada", "La receta se ha eliminado correctamente.");
+      } catch (e) {
+        document.getElementById("rStatus").textContent = "Error al borrar.";
+        toast("error", "Error borrando receta", e.message);
+      } finally {
+        hideLoading();
+        const topBtn = document.getElementById("recipeSaveTopBtn");
+        if (topBtn) topBtn.disabled = false;
+      }
+    }
+
     async function saveRecipeDetails(){
       if (!SELECTED_RECIPE_ID) return;
 
@@ -2732,6 +2762,14 @@
         recipeSaveTopBtnEl.addEventListener("click", (e) => {
           e.preventDefault();
           saveRecipeDetails();
+        });
+      }
+
+      const recipeDeleteBtnEl = document.getElementById("recipeDeleteBtn");
+      if (recipeDeleteBtnEl) {
+        recipeDeleteBtnEl.addEventListener("click", (e) => {
+          e.preventDefault();
+          deleteRecipeWithConfirmation();
         });
       }
 
@@ -3287,6 +3325,7 @@
 
         <div class="modalHeaderActions">
           <span id="recipeTopStatus" class="muted" style="font-size:12px;"></span>
+          <button id="recipeDeleteBtn" style="background: rgba(239,68,68,0.15); color: #dc2626;">Borrar</button>
           <button id="recipeSaveTopBtn" class="btnPrimary" disabled>Guardar</button>
           <button id="recipeCloseBtn">Tancar</button>
         </div>
