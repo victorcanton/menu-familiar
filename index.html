@@ -2051,6 +2051,15 @@
       }
     });
 
+    function initDefaultWeek(){
+      const today = new Date();
+      const mondayDate = startOfWeekMonday(today);
+      WEEK_START_ISO = iso(mondayDate);
+      const weekLabelEl = document.getElementById("weekLabel");
+      if (weekLabelEl) {
+        weekLabelEl.textContent = formatWeekLabel(mondayDate);
+      }
+    }
 
     (async function boot(){
       showLoading();
