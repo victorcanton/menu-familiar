@@ -2639,7 +2639,7 @@
         }
 
         // Recargar recetas
-        await loadRecipesFromServer();
+        await loadRecipesOnce();
         
         document.getElementById("rStatus").textContent = "Borrada.";
         SELECTED_RECIPE_ID = null;
