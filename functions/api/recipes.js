@@ -120,35 +120,14 @@ export async function onRequestGet({ request, env }) {
 
     const recipes = (result.results || []).map(r => ({
       ...r,
-      // Para compatibilidad: si no hay icons pero sí icon, usar icon
-      icons: r.icons || (r.icon ? JSON.stringify([r.icon]) : null),
-    }));
-    
-    // Count usage of each recipe in current menu
-    const countResult = await env.DB
-      .prepare(`
-        SELECT recipe_id, COUNT(*) as cnt 
-        FROM menu_items 
-        WHERE family_id = ?1 AND recipe_id IS NOT NULL
-        GROUP BY recipe_id
-      `)
-      .bind(family_id)
-      .all();
-
-    const counts = {};
-    (countResult.results || []).forEach(row => {
-      counts[row.recipe_id] = row.cnt;
-    });
-
-    const recipesWithCount = recipes.map(r => ({
-      ...r,
-      count: counts[r.id] || 0,
+      count: 0,  // Temporarily set to 0, will optimize later
+      last_used: null,
     }));
 
-    return json({ ok: true, recipes: recipesWithCount });
+    return json({ ok: true, recipes });
   } catch (err) {
     console.error("Recipe GET error:", err);
-    return json({ ok: false, error: "Server error", detail: String(err), stack: err.stack }, 500);
+    return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
 }
 
