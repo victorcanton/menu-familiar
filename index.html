@@ -1962,6 +1962,7 @@
       try{
         initDefaultWeek();
         await preloadTwemojiSvgs();
+        initializeIconPickers();  // <-- ADD THIS LINE
         await loadRecipesOnce();
         await loadWeekData();
         renderBoard(WEEK_START_ISO);
@@ -2693,19 +2694,16 @@
       if (modal) modal.addEventListener("click", (e) => e.stopPropagation());
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // New recipe icon picker
-      const newPickerEl = document.getElementById("newIconPicker");
-      if (newPickerEl) {
-        fillIconPickerForAdd(newPickerEl, { includeAuto: true });
-      }
-
-      // Recipe editor icon picker
-      const recipePickerEl = document.getElementById("rIconPicker");
-      if (recipePickerEl) {
-        fillIconPicker(recipePickerEl, { includeAuto: true });
-      }
-    });
+// REMOVE: document.addEventListener("DOMContentLoaded", () => {
+//   const newPickerEl = document.getElementById("newIconPicker");
+//   if (newPickerEl) {
+//     fillIconPickerForAdd(newPickerEl, { includeAuto: true });
+//   }
+//   const recipePickerEl = document.getElementById("rIconPicker");
+//   if (recipePickerEl) {
+//     fillIconPicker(recipePickerEl, { includeAuto: true });
+//   }
+// });
 
     function fillIconPickerForAdd(pickerEl, { includeAuto = true } = {}) {
       if (!pickerEl) return;
@@ -2785,6 +2783,21 @@
         pickerEl.appendChild(btn);
       }
     }
+
+    function initializeIconPickers() {
+      // New recipe icon picker
+      const newPickerEl = document.getElementById("newIconPicker");
+      if (newPickerEl) {
+        fillIconPickerForAdd(newPickerEl, { includeAuto: true });
+      }
+
+      // Recipe editor icon picker
+      const recipePickerEl = document.getElementById("rIconPicker");
+      if (recipePickerEl) {
+        fillIconPicker(recipePickerEl, { includeAuto: true });
+      }
+    }
+
 
     function selectIconInPicker(pickerEl, iconKey) {
       if (!pickerEl) return;
