@@ -1124,8 +1124,7 @@
 
   .recipeHeaderGrid{
     display: grid;
-    grid-template-columns: 1fr 200px 150px;
-    grid-template-areas: "name icon cat";
+    grid-template-columns: 1fr 200px;
     gap: 12px;
     align-items: start;
   }
@@ -1133,23 +1132,27 @@
   @media (max-width: 900px) {
     .recipeHeaderGrid {
       grid-template-columns: 1fr;
-      grid-template-areas: "name" "icon" "cat";
+      gap: 12px;
     }
   }
 
   .recipeHeaderGrid .rhName { 
-    grid-area: name; 
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .recipeHeaderGrid .rhIcon { 
-    grid-area: icon;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .recipeHeaderGrid .rhCat { 
-    grid-area: cat; 
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
   }
 
   /* Fix icon picker to fit in grid cell */
@@ -1204,6 +1207,21 @@
     max-width: 350px;
   }
 
+  .rhIcon .iconPreview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.85);
+    border: 2px solid rgba(0,0,0,0.08);
+  }
+
+  .rhIcon .iconPreview .twSvg {
+    width: 28px;
+    height: 28px;
+  }
   .iconPickerBtn {
     width: 100%;
     aspect-ratio: 1;
@@ -3060,12 +3078,6 @@
                   <input id="rName" placeholder="Nom de la recepta">
                 </div>
 
-                <div class="rhIcon">
-                  <div id="rIconPicker" class="iconPickerGrid"></div>
-                  <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
-                </div>
-                <input type="hidden" id="rIconValue">
-
                 <div class="rhCat">
                   <select id="rCategory" title="Categoria">
                     <option value="Primer">Primer</option>
@@ -3075,7 +3087,13 @@
                     <option value="Berenar">Berenar</option>
                   </select>
                 </div>
+
+                <div class="rhIcon">
+                  <div id="rIconPicker" class="iconPickerGrid"></div>
+                  <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
+                </div>
               </div>
+              <input type="hidden" id="rIconValue">
 
             </div>
 
