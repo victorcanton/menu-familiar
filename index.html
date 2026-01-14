@@ -2315,7 +2315,7 @@
 
       
 
-      // Actualizar cabecera con título, fecha, búsqueda y botón cerrar
+      // Actualizar cabecera con título, fecha, búsqueda, toggle comentarios y botón cerrar
       const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
       const mealLabel = MEALS.find(x=>x.key===mealKey)?.label || mealKey;
       modalHeader.innerHTML = `
@@ -2327,15 +2327,27 @@
             <span class="muted">🔎</span>
             <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
           </div>
+          <button id="toggleNoteHeaderBtn" type="button" class="btnGhost" style="font-size: 12px; flex: 0 0 auto;" title="Mostra/amaga comentari">▸ Comentari</button>
         </div>
         <button id="closeBtn">Tancar</button>
       `;
 
       modalBody.innerHTML = noteBlock + pickerCols;
 
-      // Toggle nota
-      const toggleNoteBtn = document.getElementById("toggleNoteBtn");
+      // Toggle nota desde botón en cabecera
+      const toggleNoteHeaderBtn = document.getElementById("toggleNoteHeaderBtn");
       const noteSection = document.getElementById("noteSection");
+      if (toggleNoteHeaderBtn && noteSection) {
+        toggleNoteHeaderBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const isHidden = noteSection.style.display === "none";
+          noteSection.style.display = isHidden ? "block" : "none";
+          toggleNoteHeaderBtn.textContent = isHidden ? "▾ Comentari" : "▸ Comentari";
+        });
+      }
+
+      // Toggle nota desde botón antiguo (si existe - legacy)
+      const toggleNoteBtn = document.getElementById("toggleNoteBtn");
       if (toggleNoteBtn && noteSection) {
         toggleNoteBtn.addEventListener("click", (e) => {
           e.preventDefault();
