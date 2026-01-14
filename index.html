@@ -2312,21 +2312,25 @@
       
 
       // Actualizar cabecera con título, fecha, búsqueda, toggle comentarios y botón cerrar
-      const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
+      const overlay = document.getElementById("overlay");
+      const modalHeader = overlay?.querySelector(".modalHeader");
       const mealLabel = MEALS.find(x=>x.key===mealKey)?.label || mealKey;
-      modalHeader.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; flex: 1; height: 40px;">
-          <div>
-            <div class="modalTitle">Editar ${mealLabel} • <span style="font-weight: 500; opacity: 0.8;">${date}</span></div>
+      
+      if (modalHeader) {
+        modalHeader.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; height: 40px;">
+            <div style="flex: 1;">
+              <div class="modalTitle">Editar ${mealLabel} • <span style="font-weight: 500; opacity: 0.8;">${date}</span></div>
+            </div>
+            <div class="pickerSearch" style="flex: 1; margin-left: auto; height: 100%; display: flex; align-items: center;">
+              <span class="muted">🔎</span>
+              <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
+            </div>
+            <button id="toggleNoteHeaderBtn" type="button" class="btnGhost" style="font-size: 12px; flex: 0 0 auto; height: 100%;" title="Mostra/amaga comentari">▸ Comentari</button>
+            <button id="closeBtn" type="button" style="height: 100%; padding: 8px 12px; cursor: pointer;">Tancar</button>
           </div>
-          <div class="pickerSearch" style="flex: 1; margin-left: auto; height: 100%; display: flex; align-items: center;">
-            <span class="muted">🔎</span>
-            <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
-          </div>
-          <button id="toggleNoteHeaderBtn" type="button" class="btnGhost" style="font-size: 12px; flex: 0 0 auto; height: 100%;" title="Mostra/amaga comentari">▸ Comentari</button>
-        </div>
-        <button id="closeBtn" style="height: 40px; align-self: center;">Tancar</button>
-      `;
+        `;
+      }
 
       modalBody.innerHTML = noteBlock + pickerCols;
 
