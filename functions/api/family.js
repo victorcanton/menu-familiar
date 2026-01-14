@@ -257,6 +257,81 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
+    // Usuario: Cambiar su propio código
+    if (action === "changeMyCode") {
+      const newCode = body.new_code;
+      if (!newCode || String(newCode).length < 4) {
+        return json({ ok: false, error: "Code must be at least 4 digits" }, 400);
+      }
+
+      // Generar salt aleatorio
+      const saltArray = new Uint8Array(16);
+      crypto.getRandomValues(saltArray);
+      const codeSalt = Array.from(saltArray)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      // Hashear el código
+      const codeHash = await hashCode(String(newCode), codeSalt);
+      const last4 = String(newCode).slice(-4);
+      const now = new Date().toISOString();
+
+      await env.DB
+        .prepare(`
+          UPDATE families 
+          SET code_hash = ?1, code_salt = ?2, code_last4 = ?3, updated_at = ?4
+          WHERE id = ?5
+        `)
+        .bind(codeHash, codeSalt, last4, now, auth.family_id)
+        .run();
+
+      return json({ ok: true, code_last4: last4 });
+    }
+
+    // Admin: Cambiar código de otra familia
+    if (action === "changeFamilyCode") {
+      if (auth.role !== "admin") {
+        return json({ ok: false, error: "Unauthorized: admin only" }, 403);
+      }
+
+      if (!target_family_id) {
+        return json({ ok: false, error: "Missing target_family_id" }, 400);
+      }
+
+      let newCode = body.new_code;
+      if (!newCode) {
+        // Si no se proporciona, generar uno aleatorio
+        newCode = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+      }
+
+      if (String(newCode).length < 4) {
+        return json({ ok: false, error: "Code must be at least 4 digits" }, 400);
+      }
+
+      // Generar salt aleatorio
+      const saltArray = new Uint8Array(16);
+      crypto.getRandomValues(saltArray);
+      const codeSalt = Array.from(saltArray)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      // Hashear el código
+      const codeHash = await hashCode(String(newCode), codeSalt);
+      const last4 = String(newCode).slice(-4);
+      const now = new Date().toISOString();
+
+      await env.DB
+        .prepare(`
+          UPDATE families 
+          SET code_hash = ?1, code_salt = ?2, code_last4 = ?3, updated_at = ?4
+          WHERE id = ?5
+        `)
+        .bind(codeHash, codeSalt, last4, target_family_id)
+        .run();
+
+      return json({ ok: true, code: newCode, code_last4: last4 });
+    }
+
     return json({ ok: false, error: "Invalid action" }, 400);
   } catch (err) {
     console.error("Family POST error:", err);

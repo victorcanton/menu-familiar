@@ -3787,13 +3787,25 @@
       
       modalBody.innerHTML = `
         <div style="padding: 20px 0; grid-column: 1 / -1;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nom visible</label>
-          <input id="prefDisplayNameInput" type="text" value="${displayName}" 
-                 placeholder="Nom de la família" style="width: 100%; margin-bottom: 12px;">
-          
-          <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button id="prefCancelBtn" class="btnGhost">Cancelar</button>
-            <button id="prefSaveBtn" class="btnPrimary">Guardar</button>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nom visible</label>
+            <input id="prefDisplayNameInput" type="text" value="${displayName}" 
+                   placeholder="Nom de la família" style="width: 100%; margin-bottom: 12px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+              <button id="prefCancelBtn" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Cancelar</button>
+              <button id="prefSaveBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Guardar</button>
+            </div>
+          </div>
+
+          <hr style="border: 0; height: 1px; background: #eee; margin: 20px 0;">
+
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Canviar contrasenya d'accés</label>
+            <div style="background: #f9f9f9; padding: 12px; border-radius: 4px; margin-bottom: 10px;">
+              <div style="font-size: 13px; color: #666; margin-bottom: 8px;">Codi actual: <span style="font-family: monospace; font-weight: bold;">XXXX</span></div>
+              <button id="changeCodeBtn" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Canviar codi</button>
+            </div>
           </div>
         </div>
       `;
@@ -3803,6 +3815,7 @@
       const prefCancelBtn = document.getElementById("prefCancelBtn");
       const preferencesCloseBtn = document.getElementById("preferencesCloseBtn");
       const prefDisplayNameInput = document.getElementById("prefDisplayNameInput");
+      const changeCodeBtn = document.getElementById("changeCodeBtn");
       
       const closePrefs = () => {
         overlay.classList.remove("open");
@@ -3834,12 +3847,16 @@
           localStorage.setItem("mf_family", JSON.stringify(family));
           renderAuthState();
           
-          toast("success", "Preferències guardades");
+          alert("Preferències guardades");
           closePrefs();
         } catch (e) {
-          toast("error", "Error", String(e));
+          alert("Error: " + String(e));
           prefSaveBtn.disabled = false;
         }
+      });
+      
+      changeCodeBtn.addEventListener("click", () => {
+        showChangeCodeForm();
       });
       
       prefCancelBtn.addEventListener("click", closePrefs);
@@ -3848,6 +3865,83 @@
       overlay.classList.add("open");
       preventMobileKeyboardOnOpen(modal);
     };
+
+    function showChangeCodeForm() {
+      const modalBody = document.getElementById("modalBody");
+      const newCode = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+      
+      modalBody.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+          <h3 style="margin-top: 0;">Nou codi d'accés</h3>
+          <div style="display: grid; gap: 10px;">
+            <div>
+              <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nou codi:</label>
+              <input type="text" id="newCodeInput" value="${newCode}" maxlength="6" 
+                     style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 18px; font-family: monospace; font-weight: bold;" />
+              <div style="font-size: 12px; color: #666; margin-top: 5px;">Pots canviar els dígits si ho vols</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button id="genNewCodeBtn" style="padding: 8px 16px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Generar nou</button>
+              <button id="cancelChangeCodeBtn" style="padding: 8px 16px; background: #ccc; color: #333; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Cancelar</button>
+              <button id="confirmChangeCodeBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const newCodeInput = document.getElementById("newCodeInput");
+      const genNewCodeBtn = document.getElementById("genNewCodeBtn");
+      const cancelChangeCodeBtn = document.getElementById("cancelChangeCodeBtn");
+      const confirmChangeCodeBtn = document.getElementById("confirmChangeCodeBtn");
+      
+      genNewCodeBtn.addEventListener("click", () => {
+        const generatedCode = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+        newCodeInput.value = generatedCode;
+      });
+      
+      cancelChangeCodeBtn.addEventListener("click", () => {
+        openPreferencesModal();
+      });
+      
+      confirmChangeCodeBtn.addEventListener("click", async () => {
+        const codeValue = newCodeInput.value.trim();
+        
+        if (!codeValue || codeValue.length < 4) {
+          alert("El codi ha de tenir com a mínim 4 dígits");
+          return;
+        }
+        
+        if (!/^\d+$/.test(codeValue)) {
+          alert("El codi només pot contenir dígits");
+          return;
+        }
+        
+        confirmChangeCodeBtn.disabled = true;
+        confirmChangeCodeBtn.textContent = "Canviant...";
+        
+        try {
+          const response = await apiFetch("/api/family", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "changeMyCode", new_code: codeValue })
+          });
+          
+          const data = await response.json();
+          
+          if (!data.ok) {
+            throw new Error(data.error || "Error al canviar el codi");
+          }
+          
+          alert("✓ Codi canviat correctament!\n\nNou codi: " + codeValue);
+          openPreferencesModal();
+        } catch (e) {
+          alert("Error: " + String(e));
+          confirmChangeCodeBtn.disabled = false;
+          confirmChangeCodeBtn.textContent = "Confirmar";
+        }
+      });
+    }
+
   
     window.openAdminModal = async function() {
       closeUserMenu();
@@ -3930,6 +4024,7 @@
             </td>
             <td style="text-align: center; padding: 10px;">
               <button class="save-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Guardar</button>
+              <button class="change-code-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Codi</button>
               <button class="delete-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
             </td>
           </tr>
@@ -3949,7 +4044,8 @@
       const adminCloseBtn = document.getElementById("adminCloseBtn");
       const createFamilyBtn = document.getElementById("createFamilyBtn");
       const saveBtns = document.querySelectorAll(".save-family-btn");
-      const deleteBtns = document.querySelectorAll(".delete-family-btn");
+      const deleteBtn = document.querySelectorAll(".delete-family-btn");
+      const changeCodeBtns = document.querySelectorAll(".change-code-btn");
       
       const closeAdmin = () => {
         overlay.classList.remove("open");
@@ -4028,6 +4124,13 @@
         });
       });
       
+      changeCodeBtns.forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const familyId = btn.dataset.familyId;
+          showAdminChangeCodeForm(familyId, families);
+        });
+      });
+      
       deleteBtns.forEach(btn => {
         btn.addEventListener("click", async () => {
           const familyId = btn.dataset.familyId;
@@ -4052,6 +4155,88 @@
       overlay.classList.add("open");
       preventMobileKeyboardOnOpen(modal);
     };
+    
+    function showAdminChangeCodeForm(familyId, families) {
+      const family = families.find(f => f.id === familyId);
+      if (!family) return;
+      
+      const modalBody = document.getElementById("modalBody");
+      const newCode = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+      
+      modalBody.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+          <h3 style="margin-top: 0;">Canviar codi d'accés</h3>
+          <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+            <strong>Familia:</strong> ${family.name}
+          </div>
+          <div style="display: grid; gap: 10px;">
+            <div>
+              <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nou codi:</label>
+              <input type="text" id="adminNewCodeInput" value="${newCode}" maxlength="6" 
+                     style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 18px; font-family: monospace; font-weight: bold;" />
+              <div style="font-size: 12px; color: #666; margin-top: 5px;">Pots canviar els dígits si ho vols</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button id="adminGenNewCodeBtn" style="padding: 8px 16px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Generar nou</button>
+              <button id="adminCancelChangeCodeBtn" style="padding: 8px 16px; background: #ccc; color: #333; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Cancelar</button>
+              <button id="adminConfirmChangeCodeBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const adminNewCodeInput = document.getElementById("adminNewCodeInput");
+      const adminGenNewCodeBtn = document.getElementById("adminGenNewCodeBtn");
+      const adminCancelChangeCodeBtn = document.getElementById("adminCancelChangeCodeBtn");
+      const adminConfirmChangeCodeBtn = document.getElementById("adminConfirmChangeCodeBtn");
+      
+      adminGenNewCodeBtn.addEventListener("click", () => {
+        const generatedCode = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+        adminNewCodeInput.value = generatedCode;
+      });
+      
+      adminCancelChangeCodeBtn.addEventListener("click", () => {
+        openAdminModal();
+      });
+      
+      adminConfirmChangeCodeBtn.addEventListener("click", async () => {
+        const codeValue = adminNewCodeInput.value.trim();
+        
+        if (!codeValue || codeValue.length < 4) {
+          alert("El codi ha de tenir com a mínim 4 dígits");
+          return;
+        }
+        
+        if (!/^\d+$/.test(codeValue)) {
+          alert("El codi només pot contenir dígits");
+          return;
+        }
+        
+        adminConfirmChangeCodeBtn.disabled = true;
+        adminConfirmChangeCodeBtn.textContent = "Canviant...";
+        
+        try {
+          const response = await apiFetch("/api/family", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "changeFamilyCode", target_family_id: familyId, new_code: codeValue })
+          });
+          
+          const data = await response.json();
+          
+          if (!data.ok) {
+            throw new Error(data.error || "Error al canviar el codi");
+          }
+          
+          alert("✓ Codi canviat correctament!\n\nNou codi: " + codeValue);
+          openAdminModal();
+        } catch (e) {
+          alert("Error: " + String(e));
+          adminConfirmChangeCodeBtn.disabled = false;
+          adminConfirmChangeCodeBtn.textContent = "Confirmar";
+        }
+      });
+    }
     
     function showCreateFamilyForm() {
       const modalBody = document.getElementById("modalBody");
