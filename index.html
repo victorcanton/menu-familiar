@@ -2399,7 +2399,7 @@
       }
 
 
-      // Cerca dins el selector (client-side, sense crides)
+      // Búsqueda dentro del selector (client-side, sin llamadas)
       const searchEl = document.getElementById("modalSearch");
       if (searchEl){
         searchEl.addEventListener("input", () => {
@@ -2412,29 +2412,8 @@
         //setTimeout(()=> searchEl.focus(), 0);
       }
 
-
-
-
-      document.getElementById("saveNoteBtn").addEventListener("click", async () => {
-        showLoading({ silent: true });
-        const note = (document.getElementById("noteBox").value || "").trim();
-
-        await gasp("api_setNote", { date, meal: mealKey, note });
-
-        await loadWeekData();
-        DIRTY_SLOTS = {};
-        renderBoard(WEEK_START_ISO);
-        // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
-        const todayISO = iso(new Date());
-        const dates = buildDates(WEEK_START_ISO);
-        scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
-
-        syncMealHeights();
-        hideLoading();
-      });
-
-
       overlay.classList.add("open");
+
       const modal = document.getElementById("modal");
       preventMobileKeyboardOnOpen(modal);
 
