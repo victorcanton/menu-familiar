@@ -231,11 +231,23 @@ export async function onRequestPost({ request, env }) {
             console.log(`Existing recipe_id: ${existing.recipe_id}, new recipe_id: ${change.recipe_id}`);
             if (change.recipe_id && change.recipe_id !== existing.recipe_id) {
               console.log(`Incrementing count for recipe ${change.recipe_id}`);
-              const updateResult = await env.DB
-                .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+              
+              // Verificar que la receta existe
+              const recipe = await env.DB
+                .prepare("SELECT id, count FROM recipes WHERE id = ?1 AND family_id = ?2")
                 .bind(change.recipe_id, family_id)
-                .run();
-              console.log(`Update result: ${JSON.stringify(updateResult)}`);
+                .first();
+              console.log(`Recipe found: ${JSON.stringify(recipe)}`);
+              
+              if (recipe) {
+                const updateResult = await env.DB
+                  .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+                  .bind(change.recipe_id, family_id)
+                  .run();
+                console.log(`Update count result: ${JSON.stringify(updateResult)}`);
+              } else {
+                console.warn(`Recipe not found: ${change.recipe_id}`);
+              }
             }
             
             await env.DB
@@ -246,17 +258,28 @@ export async function onRequestPost({ request, env }) {
             // Incrementar contador al crear nuevo item
             console.log(`Creating new menu_item and incrementing count for recipe ${change.recipe_id}`);
             
+            // Verificar que la receta existe
+            const recipe = await env.DB
+              .prepare("SELECT id, count FROM recipes WHERE id = ?1 AND family_id = ?2")
+              .bind(change.recipe_id, family_id)
+              .first();
+            console.log(`Recipe found: ${JSON.stringify(recipe)}`);
+            
             const itemId = generateId("mi");
             await env.DB
               .prepare("INSERT INTO menu_items (id, family_id, date, meal, position, recipe_id, label, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
               .bind(itemId, family_id, change.date, mealKey, pos, change.recipe_id, change.label || null, now, now)
               .run();
             
-            const updateResult = await env.DB
-              .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
-              .bind(change.recipe_id, family_id)
-              .run();
-            console.log(`Update count result: ${JSON.stringify(updateResult)}`);
+            if (recipe) {
+              const updateResult = await env.DB
+                .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+                .bind(change.recipe_id, family_id)
+                .run();
+              console.log(`Update count result: ${JSON.stringify(updateResult)}`);
+            } else {
+              console.warn(`Recipe not found: ${change.recipe_id}`);
+            }
           }
         }
       }
