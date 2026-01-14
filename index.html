@@ -4013,6 +4013,16 @@
           
           if (success) {
             alert("Familia actualizada");
+            
+            // Si es la familia actual, actualizar localStorage y UI
+            const { family: currentFamily } = getAuth();
+            if (currentFamily && currentFamily.id === familyId) {
+              currentFamily.display_name = newDisplayName;
+              currentFamily.role = newRole;
+              setAuth(localStorage.getItem("mf_token"), currentFamily);
+              renderAuthState();
+            }
+            
             openAdminModal(); // Recargar la lista
           }
         });
