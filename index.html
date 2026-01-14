@@ -796,6 +796,50 @@
     }
   }
 
+  /* --- Daily view: Very narrow screens (<500px) --- */
+  @media (max-width: 500px) {
+    .topbar h2 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .container {
+      padding: 10px;
+    }
+
+    .board {
+      overflow: hidden;
+    }
+
+    .weekCols {
+      grid-auto-columns: 100% !important;
+      overflow: hidden !important;
+    }
+
+    .dayCol {
+      border-radius: 16px;
+    }
+
+    .mealName {
+      font-size: 18px !important;
+      font-weight: 600;
+    }
+
+    .mealBody {
+      font-size: 16px;
+    }
+
+    .twSvg {
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    #weekLabel {
+      font-size: 18px !important;
+      font-weight: 600;
+    }
+  }
+
   /* --- Recipe picker (modal) --- */
   .pickerTop{
     grid-column: 1 / -1;
@@ -2091,6 +2135,72 @@
 
     const VIEW_MODE = "edit";
 
+    // Daily View variables
+    let CURRENT_DISPLAY_DATE = null;  // ISO date for daily view
+    let PRELOADED_DATES = new Set();  // For smooth swipe navigation
+
+    function isDailyViewMode() {
+      return window.matchMedia("(max-width: 500px)").matches;
+    }
+
+    function updateTitleForMode() {
+      const h2 = document.querySelector(".titleRow h2");
+      if (!h2) return;
+      
+      if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
+        h2.textContent = "Menú diari";
+      } else {
+        h2.textContent = "Menú setmanal";
+      }
+    }
+
+    function updateDateLabelForMode() {
+      const weekLabel = document.getElementById("weekLabel");
+      if (!weekLabel) return;
+      
+      if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
+        const d = parseISO(CURRENT_DISPLAY_DATE);
+        const months = ["gen", "feb", "mar", "abr", "mai", "jun", "jul", "ago", "set", "oct", "nov", "des"];
+        const day = d.getDate();
+        const month = months[d.getMonth()];
+        const dayNames = ["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
+        const dayName = dayNames[d.getDay()];
+        weekLabel.textContent = `${dayName}, ${day} ${month}`;
+        weekLabel.style.fontSize = "18px";
+        weekLabel.style.fontWeight = "600";
+      } else if (weekLabel.textContent) {
+        weekLabel.style.fontSize = "";
+        weekLabel.style.fontWeight = "";
+      }
+    }
+
+    function navigateToDate(dateISO) {
+      CURRENT_DISPLAY_DATE = dateISO;
+      updateTitleForMode();
+      updateDateLabelForMode();
+      renderBoardForDisplay();
+    }
+
+    function nextDay() {
+      if (!CURRENT_DISPLAY_DATE) return;
+      const next = addDaysDate(parseISO(CURRENT_DISPLAY_DATE), 1);
+      navigateToDate(iso(next));
+    }
+
+    function prevDay() {
+      if (!CURRENT_DISPLAY_DATE) return;
+      const prev = addDaysDate(parseISO(CURRENT_DISPLAY_DATE), -1);
+      navigateToDate(iso(prev));
+    }
+
+    function renderBoardForDisplay() {
+      if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
+        renderBoardDaily(CURRENT_DISPLAY_DATE);
+      } else {
+        renderBoard(WEEK_START_ISO);
+      }
+    }
+
     function slotId(date, mealKey, course){
       return `${date}_${mealKey}_${course}`;
     }
@@ -2271,6 +2381,152 @@
       `;
     }
 
+    function renderBoardDaily(dateISO) {
+      // Render only one day in full width for daily view
+      const DAY_COLORS = [
+        "#f2e8e6", "#f7dfe6", "#d8eff1", "#dff0d6", "#f6efc8", "#e9e5f7", "#e7f5ff"
+      ];
+
+      const dayTitle = (dateStr) => {
+        const d = new Date(dateStr + "T00:00:00");
+        const names = ["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
+        return names[d.getDay()];
+      };
+
+      const formatShortCa = (d) => {
+        const months = ["gen", "feb", "mar", "abr", "mai", "jun", "jul", "ago", "set", "oct", "nov", "des"];
+        const day = d.getDate();
+        const month = months[d.getMonth()];
+        return `${day} ${month}`;
+      };
+
+      const dateObj = parseISO(dateISO);
+      const dayIdx = (dateObj.getDay() + 6) % 7;
+      const dayBg = DAY_COLORS[dayIdx];
+
+      const mealsHtml = MEALS.map(m => {
+        const courses = coursesForMeal(m.key);
+        const note = findNote(dateISO, m.key);
+        const noteHtml = note
+          ? `<div class="noteLine" title="${note.replaceAll('"','&quot;')}">📝 ${note}</div>`
+          : "";
+
+        const cards = courses.map(course => {
+          const sid = slotId(dateISO, m.key, course);
+          const slot = findSlot(sid);
+          if (!slot || !slot.recipe_id) return "";
+
+          const r = findRecipe(slot.recipe_id);
+          let icons = "";
+          if (r) {
+            let iconKeys = [];
+            if (r.icons) {
+              try {
+                iconKeys = JSON.parse(r.icons);
+              } catch (e) {}
+            } else if (r.icon) {
+              iconKeys = [r.icon];
+            }
+            icons = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
+          }
+
+          const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
+          const cls = courseClass(course);
+
+          return `
+            <div class="card ${cls}"
+                onclick="openRecipeViewer('${slot.recipe_id}', event)">
+              <span class="cName">${name}</span>
+              <span class="cIcon">${icons}</span>
+            </div>
+          `;
+        }).filter(Boolean).join("");
+
+        const bodyId = mealBodyId(dateISO, m.key);
+        const isMealDirty = Object.keys(DIRTY_SLOTS)
+          .some(k => k.startsWith(`${dateISO}_${m.key}_`));
+
+        return `
+          <div class="mealRow">
+            <div class="mealLabel">${MEALS.find(x=>x.key===m.key)?.label || m.key}</div>
+            <div id="${bodyId}"
+              class="mealBody meal-${m.key} ${isMealDirty ? "dirty" : ""} ${(noteHtml || cards) ? "hasContent" : ""}"
+              data-meal="${m.key}"
+              role="button"
+              tabindex="0"
+              title="Editar ${MEALS.find(x=>x.key===m.key)?.label || m.key}"
+              onclick="openCellEditor('${dateISO}','${m.key}')"
+              onkeydown="if(event.key==='Enter' || event.key===' ') openCellEditor('${dateISO}','${m.key}')">
+              <div class="mealCards">
+                ${noteHtml}
+                ${cards || ""}
+              </div>
+              ${isMealDirty
+                ? `<div class="badgeRow">
+                    <span class="dirtyBadge">Pendent de guardar</span>
+                  </div>`
+                : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const colHtml = `
+        <div class="dayCol" data-date="${dateISO}" style="background:${dayBg}">
+          <div class="dayHead">
+            <div class="dayName">${dayTitle(dateISO)}</div>
+            <div class="dayDate">${formatShortCa(dateObj)}</div>
+          </div>
+          <div class="dayMeals">
+            ${mealsHtml}
+          </div>
+        </div>
+      `;
+
+      document.getElementById("grid").innerHTML = `
+        <div class="board" id="dailyBoard">
+          <div class="weekCols">
+            ${colHtml}
+          </div>
+        </div>
+      `;
+
+      // Setup swipe handlers for daily view
+      setupDailySwipeHandlers();
+    }
+
+    function setupDailySwipeHandlers() {
+      const board = document.getElementById("dailyBoard");
+      if (!board) return;
+
+      let startX = 0;
+      let startY = 0;
+      const THRESHOLD = 50;
+
+      board.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, false);
+
+      board.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+
+        // Require mostly horizontal movement
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > THRESHOLD) {
+          if (diffX > 0) {
+            // Swipe right = previous day
+            prevDay();
+          } else {
+            // Swipe left = next day
+            nextDay();
+          }
+        }
+      }, false);
+    }
+
     function scrollToDateOnMobile(dateISO){
       if (!(window.matchMedia && window.matchMedia("(max-width: 640px)").matches)) return;
 
@@ -2325,7 +2581,9 @@
         }
 
         await loadWeekData();
-        renderBoard(WEEK_START_ISO);
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
         
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -2364,6 +2622,7 @@
       const today = new Date();
       const mondayDate = startOfWeekMonday(today);
       WEEK_START_ISO = iso(mondayDate);
+      CURRENT_DISPLAY_DATE = iso(today);  // Initialize daily view date to today
       const weekLabelEl = document.getElementById("weekLabel");
       if (weekLabelEl) {
         weekLabelEl.textContent = formatWeekLabel(mondayDate);
@@ -2408,7 +2667,9 @@
         }
         
         console.log("Rendering board with WEEK_START_ISO:", WEEK_START_ISO);
-        renderBoard(WEEK_START_ISO);
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
         
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -2847,10 +3108,12 @@
         const prev = addDaysDate(d, -7);
         WEEK_START_ISO = iso(prev);
 
-        if (weekLabelEl) weekLabelEl.textContent = formatWeekLabel(prev);
+        if (weekLabelEl && !isDailyViewMode()) weekLabelEl.textContent = formatWeekLabel(prev);
 
         await loadWeekData();
-        renderBoard(WEEK_START_ISO);
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
 
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -2869,10 +3132,12 @@
         const next = addDaysDate(d, 7);
         WEEK_START_ISO = iso(next);
 
-        if (weekLabelEl) weekLabelEl.textContent = formatWeekLabel(next);
+        if (weekLabelEl && !isDailyViewMode()) weekLabelEl.textContent = formatWeekLabel(next);
 
         await loadWeekData();
-        renderBoard(WEEK_START_ISO);
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
 
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -2924,7 +3189,9 @@
 
       DIRTY_SLOTS = {};
       await loadWeekData();
-      renderBoard(WEEK_START_ISO);
+      renderBoardForDisplay();
+      updateTitleForMode();
+      updateDateLabelForMode();
       // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
       const todayISO = iso(new Date());
       const dates = buildDates(WEEK_START_ISO);
@@ -3196,7 +3463,9 @@
         toast("success", "Recepta guardada");
         renderRecipeList();
         // també refresquem el board perquè icones/nom reflecteixin immediatament
-        renderBoard(WEEK_START_ISO);
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
         // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
 
         setRecipeDirty(false);
@@ -4672,6 +4941,14 @@
           });
       });
     }
+
+    // Handle orientation changes: re-render board when switching between daily/weekly view
+    window.addEventListener('resize', () => {
+      renderBoardForDisplay();
+      updateTitleForMode();
+      updateDateLabelForMode();
+      syncMealHeights();
+    });
   </script>
 
 </body>
