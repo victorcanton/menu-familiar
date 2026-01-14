@@ -2899,7 +2899,7 @@
             </div>
 
             <div class="noteActions">
-              <button id="saveNoteBtn" type="button" class="btn" style="padding: 6px 12px; font-size: 12px;">Comentari</button>
+              <button id="saveNoteBtn" type="button" class="btn" style="padding: 6px 12px; font-size: 12px;">Guardar comentari</button>
               <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda automàticament.</span>
             </div>
           </div>
@@ -3055,7 +3055,8 @@
             const res = await gasp("api_setNote", { date, meal: mealKey, note });
             if (res && res.ok !== false) {
               toast("success", "Comentari guardat", "");
-              // Recarregar el board perquè reflectisca la nota
+              // Recarregar les dades i el board perquè reflectisca la nota
+              await loadWeekData();
               renderBoardForDisplay();
             } else {
               toast("error", "Error", res?.error || "No s'ha pogut guardar el comentari");
