@@ -2638,7 +2638,8 @@
           throw new Error(error.error || "Error borrando la receta");
         }
 
-        // Recargar recetas
+        // Recargar recetas - forzar recarga sin caché
+        RECIPES = [];
         await loadRecipesOnce();
         
         document.getElementById("rStatus").textContent = "Borrada.";
