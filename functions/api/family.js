@@ -1,4 +1,5 @@
 import { verifyJWT } from "../_lib/jwt";
+import { hashCode } from "../_lib/crypto";
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
@@ -190,6 +191,70 @@ export async function onRequestPost({ request, env }) {
         .run();
 
       return json({ ok: true });
+    }
+
+    // Admin: Crear nueva familia
+    if (action === "createFamily") {
+      if (auth.role !== "admin") {
+        return json({ ok: false, error: "Unauthorized: admin only" }, 403);
+      }
+
+      if (!family_name) {
+        return json({ ok: false, error: "Missing family_name" }, 400);
+      }
+
+      const cleanName = String(family_name).trim();
+      if (!cleanName) {
+        return json({ ok: false, error: "Family name cannot be empty" }, 400);
+      }
+
+      // Generar código aleatorio (4 dígitos)
+      const code = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+      const last4 = code.slice(-4);
+
+      // Generar salt aleatorio
+      const saltArray = new Uint8Array(16);
+      crypto.getRandomValues(saltArray);
+      const codeSalt = Array.from(saltArray)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      // Hashear el código
+      const codeHash = await hashCode(code, codeSalt);
+
+      // Generar ID único para la familia (formato fam_xxxxx)
+      const familyId = `fam_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const now = new Date().toISOString();
+
+      // Insertar nueva familia
+      await env.DB
+        .prepare(`
+          INSERT INTO families (id, name, display_name, code_hash, code_salt, code_last4, role, created_at, updated_at)
+          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+        `)
+        .bind(
+          familyId,
+          cleanName,
+          family_display_name || cleanName,
+          codeHash,
+          codeSalt,
+          last4,
+          "member", // Nueva familia es member por defecto
+          now,
+          now
+        )
+        .run();
+
+      return json({ 
+        ok: true, 
+        family: { 
+          id: familyId, 
+          name: cleanName, 
+          display_name: family_display_name || cleanName,
+          code: code,
+          code_last4: last4
+        } 
+      });
     }
 
     return json({ ok: false, error: "Invalid action" }, 400);
