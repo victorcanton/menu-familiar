@@ -2179,15 +2179,10 @@
       if (!weekLabel) return;
       
       if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
-        // In daily view: show week number instead of date range
-        const d = parseISO(CURRENT_DISPLAY_DATE);
-        const weekNum = getISOWeekNumber(d);
-        weekLabel.textContent = `Setmana ${weekNum}`;
-        weekLabel.style.fontSize = "14px";
-        weekLabel.style.fontWeight = "600";
-      } else if (weekLabel.textContent) {
-        weekLabel.style.fontSize = "";
-        weekLabel.style.fontWeight = "";
+        // In daily view: hide the week label
+        weekLabel.style.display = "none";
+      } else {
+        weekLabel.style.display = "";
       }
     }
 
