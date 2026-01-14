@@ -96,7 +96,7 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: "Database not configured" }, 500);
     }
 
-    const { action, display_name, target_family_id, family_name, family_code, family_role } = body;
+    const { action, display_name, target_family_id, family_name, family_display_name, family_code, family_role } = body;
 
     // Actualizar display_name de la familia actual
     if (action === "updateDisplayName" && display_name !== undefined) {
