@@ -173,7 +173,27 @@
 
 
 
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .topbar { 
+    display: grid; 
+    grid-template-columns: auto 1fr auto; 
+    align-items: center; 
+    gap: 12px;
+    grid-template-areas: "title week auth";
+  }
+
+  .topbar .titleRow {
+    grid-area: title;
+  }
+
+  .topbar .weekControls {
+    grid-area: week;
+    justify-self: center;
+  }
+
+  .topbar .authBar {
+    grid-area: auth;
+    justify-self: end;
+  }
   .muted { color:#666; font-size:13px; }
   button, input, select, textarea{
     font-size: 15px;
