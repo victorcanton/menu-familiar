@@ -2161,11 +2161,20 @@
 
         }).join("");
 
+        const formatShortCa = (d) => {
+          const months = ["gen", "feb", "mar", "abr", "mai", "jun", "jul", "ago", "set", "oct", "nov", "des"];
+          const day = d.getDate();
+          const month = months[d.getMonth()];
+          return `${day} ${month}`;
+        };
+        const dateObj = parseISO(date);
+        const shortDate = formatShortCa(dateObj);
+
         return `
           <div class="dayCol" data-date="${date}" style="background:${dayBg}">
             <div class="dayHead">
               <div class="dayName">${dayTitle(date)}</div>
-              <div class="dayDate">${date}</div>
+              <div class="dayDate">${shortDate}</div>
             </div>
             <div class="dayMeals">
               ${mealsHtml}
