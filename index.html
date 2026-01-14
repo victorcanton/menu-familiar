@@ -1891,8 +1891,15 @@
 
     function formatWeekLabel(mondayDate){
       const sunday = addDaysDate(mondayDate, 6);
-      const fmt = (x) => iso(x);
-      return `${fmt(mondayDate)} → ${fmt(sunday)}`;
+      
+      const formatShortCa = (d) => {
+        const months = ["gen", "feb", "mar", "abr", "mai", "jun", "jul", "ago", "set", "oct", "nov", "des"];
+        const day = d.getDate();
+        const month = months[d.getMonth()];
+        return `${day} ${month}`;
+      };
+      
+      return `${formatShortCa(monday Date)} → ${formatShortCa(sunday)}`;
     }
 
 
