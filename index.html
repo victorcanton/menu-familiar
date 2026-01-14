@@ -4000,6 +4000,8 @@
                   <th style="text-align: left; padding: 10px; font-weight: 600;">Nom</th>
                   <th style="text-align: left; padding: 10px; font-weight: 600;">Nom visible</th>
                   <th style="text-align: center; padding: 10px; font-weight: 600;">Codi</th>
+                  <th style="text-align: center; padding: 10px; font-weight: 600;">Recetes</th>
+                  <th style="text-align: center; padding: 10px; font-weight: 600;">Menjars</th>
                   <th style="text-align: center; padding: 10px; font-weight: 600;">Rol</th>
                   <th style="text-align: center; padding: 10px; font-weight: 600;">Accions</th>
                 </tr>
@@ -4016,6 +4018,8 @@
               <input type="text" class="family-display-name" data-family-id="${f.id}" value="${displayName}" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" />
             </td>
             <td style="text-align: center; padding: 10px; font-family: monospace; font-weight: 500;">${f.code_last4}</td>
+            <td style="text-align: center; padding: 10px;"><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-weight: 500;">${f.recipe_count || 0}</span></td>
+            <td style="text-align: center; padding: 10px;"><span style="background: #f3e5f5; padding: 4px 8px; border-radius: 4px; font-weight: 500;">${f.meals_count || 0}</span></td>
             <td style="text-align: center; padding: 10px;">
               <select class="family-role" data-family-id="${f.id}" style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">
                 <option value="member" ${f.role === 'member' ? 'selected' : ''}>Membre</option>

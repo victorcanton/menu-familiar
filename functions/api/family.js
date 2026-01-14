@@ -120,20 +120,48 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: true, display_name: newDisplayName });
     }
 
-    // Admin: Obtener lista de todas las familias
+    // Admin: Obtener lista de todas las familias con estadísticas
     if (action === "listFamilies") {
       if (auth.role !== "admin") {
         return json({ ok: false, error: "Unauthorized: admin only" }, 403);
       }
 
-      const result = await env.DB
+      const families = await env.DB
         .prepare(`
           SELECT id, name, display_name, code_last4, role, created_at FROM families
           ORDER BY created_at DESC
         `)
         .all();
 
-      return json({ ok: true, families: result.results || [] });
+      // Para cada familia, obtener estadísticas
+      const enrichedFamilies = [];
+      for (const family of families.results || []) {
+        // Contar recetas
+        const recipeCount = await env.DB
+          .prepare(`
+            SELECT COUNT(*) as count FROM recipes 
+            WHERE family_id = ?1 AND archived_at IS NULL
+          `)
+          .bind(family.id)
+          .first();
+
+        // Contar comidas planificadas (próximos 30 días)
+        const mealsCount = await env.DB
+          .prepare(`
+            SELECT COUNT(*) as count FROM menu_items 
+            WHERE family_id = ?1 AND date >= date('now') AND date <= date('now', '+30 days')
+          `)
+          .bind(family.id)
+          .first();
+
+        enrichedFamilies.push({
+          ...family,
+          recipe_count: recipeCount?.count || 0,
+          meals_count: mealsCount?.count || 0
+        });
+      }
+
+      return json({ ok: true, families: enrichedFamilies });
     }
 
     // Admin: Actualizar display_name de otra familia
