@@ -90,6 +90,12 @@
     flex-wrap:wrap;
   }
 
+  .newRecipeForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   /* Toast */
   .toastWrap{
     position: fixed;
@@ -1303,14 +1309,41 @@
   /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    padding: 8px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 12px;
+    padding: 12px;
     background: rgba(255,255,255,0.85);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 8px;
-    max-width: 350px;
+    width: 100%;
+  }
+  
+  .newRecipeForm .iconPickerGrid .iconPickerBtn {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 2px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 120ms ease;
+  }
+  
+  .newRecipeForm .iconPickerGrid .iconPickerBtn:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.05);
+    transform: scale(1.05);
+  }
+  
+  .newRecipeForm .iconPickerGrid .iconPickerBtn.selected {
+    border-color: rgba(59,130,246,0.8);
+    background: rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
   .rhIcon .iconPreview {
     display: flex;
@@ -1592,20 +1625,24 @@
     <h3>Catàleg de plats</h3>
 
     <div class="panel">
-      <div class="row">
-        <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-        <select id="newCat">
-          <option value="Primer">Primer</option>
-          <option value="Segon">Segon</option>
-          <option value="Plat únic">Plat únic</option>
-          <option value="Esmorzar">Esmorzar</option>
-          <option value="Berenar">Berenar</option>
-        </select>
-        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
+      <div class="newRecipeForm">
+        <div class="row">
+          <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
+          <select id="newCat">
+            <option value="Primer">Primer</option>
+            <option value="Segon">Segon</option>
+            <option value="Plat únic">Plat únic</option>
+            <option value="Esmorzar">Esmorzar</option>
+            <option value="Berenar">Berenar</option>
+          </select>
+        </div>
+        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 100%;"></div>
         <span id="newIconPreview" class="iconPreview"></span>
         <input type="hidden" id="newIconValue">
-        <button id="addBtn" class="btnPrimary">Afegir</button>
-        <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
+        <div class="row">
+          <button id="addBtn" class="btnPrimary">Afegir</button>
+          <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
+        </div>
       </div>
     </div>
   <div id="overlay" class="overlay">
