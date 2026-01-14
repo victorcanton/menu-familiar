@@ -934,13 +934,36 @@
 
   .recipeRow{
     display:flex;
-    gap:10px;
-    align-items:center;
+    flex-direction: column;
+    gap:8px;
+    align-items:flex-start;
     border: 1px solid rgba(0,0,0,0.08);
     background: rgba(255,255,255,0.75);
     border-radius: 14px;
     padding: 10px;
     cursor:pointer;
+  }
+  
+  .recipeRowContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    width: 100%;
+  }
+  
+  .recipeRowIcons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+  }
+  
+  .recipeRowIcons .iconItem {
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .recipeRow:hover{ transform: translateY(-1px); box-shadow: 0 10px 18px rgba(0,0,0,0.06); }
   .recipeRow.selected{ border-color: rgba(59,130,246,0.55); box-shadow: 0 12px 22px rgba(59,130,246,0.12); }
@@ -2966,13 +2989,24 @@
       }
 
       for (const r of items){
+        let iconKeys = [];
+        if (r.icons) {
+          try {
+            iconKeys = JSON.parse(r.icons);
+          } catch (e) {}
+        } else if (r.icon) {
+          iconKeys = [r.icon];
+        }
+        const iconsHtml = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
+        
         const row = document.createElement("div");
         row.className = "recipeRow" + (String(r.id) === String(SELECTED_RECIPE_ID) ? " selected" : "");
         row.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+          <div class="recipeRowContent">
             <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(r.name||"")}</div>
             <div class="muted" style="font-size:12px;">${(r.category||"")}</div>
           </div>
+          ${iconsHtml ? `<div class="recipeRowIcons">${iconsHtml}</div>` : ""}
         `;
         row.addEventListener("click", ()=> selectRecipeForEdit(String(r.id)));
         listEl.appendChild(row);
