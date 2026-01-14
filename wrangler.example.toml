@@ -1,0 +1,16 @@
+# Configuración para Cloudflare Pages
+# Asegura que los archivos estáticos se sirven correctamente
+
+[env.production]
+name = "menu-familiar"
+
+# Rutas estáticas que deben servirse correctamente
+routes = [
+  { pattern = "/manifest.json", zone_name = "example.com" },
+  { pattern = "/sw.js", zone_name = "example.com" },
+  { pattern = "/icons/*", zone_name = "example.com" }
+]
+
+# Headers personalizados (opcional)
+[env.production.triggers]
+crons = []
