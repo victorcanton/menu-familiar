@@ -3866,27 +3866,227 @@
       
       modalHeader.innerHTML = `
         <div>
-          <div class="modalTitle">Administració</div>
+          <div class="modalTitle">Administració de famílies</div>
         </div>
         <button id="adminCloseBtn">Tancar</button>
       `;
       
-      modalBody.innerHTML = `
-        <div style="padding: 20px 0; grid-column: 1 / -1;">
-          <p>Gestió de famílies (en desenvolupament)</p>
+      // Cargar lista de familias
+      const res = await apiFetch("/api/family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "listFamilies" })
+      });
+      const data = await res.json();
+      
+      if (!data.ok) {
+        modalBody.innerHTML = `<div style="grid-column: 1 / -1; color: red;">Error: ${data.error}</div>`;
+        const adminCloseBtn = document.getElementById("adminCloseBtn");
+        adminCloseBtn.addEventListener("click", () => {
+          overlay.classList.remove("open");
+          IS_IN_MODAL = false;
+        });
+        overlay.classList.add("open");
+        return;
+      }
+      
+      const families = data.families || [];
+      
+      // Tabla de familias
+      let familiesHtml = `
+        <div style="grid-column: 1 / -1; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">Famílies</h3>
+            <button id="createFamilyBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">+ Nova familia</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                  <th style="text-align: left; padding: 10px; font-weight: 600;">Nom</th>
+                  <th style="text-align: left; padding: 10px; font-weight: 600;">Nom visible</th>
+                  <th style="text-align: center; padding: 10px; font-weight: 600;">Codi</th>
+                  <th style="text-align: center; padding: 10px; font-weight: 600;">Rol</th>
+                  <th style="text-align: center; padding: 10px; font-weight: 600;">Accions</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      for (const f of families) {
+        const displayName = f.display_name || f.name;
+        familiesHtml += `
+          <tr style="border-bottom: 1px solid #eee;" id="family-row-${f.id}">
+            <td style="padding: 10px;">${f.name}</td>
+            <td style="padding: 10px;">
+              <input type="text" class="family-display-name" data-family-id="${f.id}" value="${displayName}" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" />
+            </td>
+            <td style="text-align: center; padding: 10px; font-family: monospace; font-weight: 500;">${f.code_last4}</td>
+            <td style="text-align: center; padding: 10px;">
+              <select class="family-role" data-family-id="${f.id}" style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="member" ${f.role === 'member' ? 'selected' : ''}>Membre</option>
+                <option value="admin" ${f.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+            </td>
+            <td style="text-align: center; padding: 10px;">
+              <button class="save-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Guardar</button>
+              <button class="delete-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
+            </td>
+          </tr>
+        `;
+      }
+      
+      familiesHtml += `
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
       
+      modalBody.innerHTML = familiesHtml;
+      
+      // Event listeners
       const adminCloseBtn = document.getElementById("adminCloseBtn");
+      const createFamilyBtn = document.getElementById("createFamilyBtn");
+      const saveBtns = document.querySelectorAll(".save-family-btn");
+      const deleteBtns = document.querySelectorAll(".delete-family-btn");
+      
       const closeAdmin = () => {
         overlay.classList.remove("open");
         IS_IN_MODAL = false;
       };
       
       adminCloseBtn.addEventListener("click", closeAdmin);
+      
+      createFamilyBtn.addEventListener("click", () => {
+        showCreateFamilyForm();
+      });
+      
+      saveBtns.forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const familyId = btn.dataset.familyId;
+          const displayNameInput = document.querySelector(`.family-display-name[data-family-id="${familyId}"]`);
+          const roleSelect = document.querySelector(`.family-role[data-family-id="${familyId}"]`);
+          
+          const newDisplayName = displayNameInput.value.trim();
+          const newRole = roleSelect.value;
+          
+          if (!newDisplayName) {
+            alert("El nom visible no pot estar buit");
+            return;
+          }
+          
+          // Enviar cambios
+          let success = true;
+          
+          // Actualizar display name
+          const res1 = await apiFetch("/api/family", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "updateFamilyDisplayName",
+              target_family_id: familyId,
+              display_name: newDisplayName
+            })
+          });
+          const data1 = await res1.json();
+          if (!data1.ok) {
+            alert("Error al actualizar nom: " + data1.error);
+            success = false;
+          }
+          
+          // Actualizar rol
+          const res2 = await apiFetch("/api/family", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "updateFamilyRole",
+              target_family_id: familyId,
+              family_role: newRole
+            })
+          });
+          const data2 = await res2.json();
+          if (!data2.ok) {
+            alert("Error al actualizar rol: " + data2.error);
+            success = false;
+          }
+          
+          if (success) {
+            alert("Familia actualizada");
+            openAdminModal(); // Recargar la lista
+          }
+        });
+      });
+      
+      deleteBtns.forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const familyId = btn.dataset.familyId;
+          if (!confirm("¿Estàs segur que vols borrar aquesta familia?")) return;
+          
+          const res = await apiFetch("/api/family", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "deleteFamily", target_family_id: familyId })
+          });
+          const data = await res.json();
+          
+          if (data.ok) {
+            alert("Familia borrada");
+            openAdminModal(); // Recargar
+          } else {
+            alert("Error: " + data.error);
+          }
+        });
+      });
+      
       overlay.classList.add("open");
       preventMobileKeyboardOnOpen(modal);
     };
+    
+    function showCreateFamilyForm() {
+      const modalBody = document.getElementById("modalBody");
+      const formHtml = `
+        <div style="grid-column: 1 / -1; margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Nova familia</h3>
+          <div style="display: grid; gap: 10px;">
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nom de la familia:</label>
+              <input type="text" id="newFamilyName" placeholder="Ex: Família García" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nom visible (opcional):</label>
+              <input type="text" id="newFamilyDisplayName" placeholder="Ex: Els García" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button id="createFamilyFormBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Crear</button>
+              <button id="cancelCreateFamilyBtn" style="padding: 8px 16px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      modalBody.innerHTML = formHtml;
+      
+      const createBtn = document.getElementById("createFamilyFormBtn");
+      const cancelBtn = document.getElementById("cancelCreateFamilyBtn");
+      
+      cancelBtn.addEventListener("click", () => {
+        openAdminModal();
+      });
+      
+      createBtn.addEventListener("click", async () => {
+        const familyName = document.getElementById("newFamilyName").value.trim();
+        const displayName = document.getElementById("newFamilyDisplayName").value.trim();
+        
+        if (!familyName) {
+          alert("El nom de la familia no pot estar buit");
+          return;
+        }
+        
+        alert("La creació de noves famílies requereix configurar codi de seguretat. Aquesta funcionalitat s'implementarà aviat.");
+        openAdminModal();
+      });
+    }
     
     async function bootstrapAuth() {
       // 1) Pinta ràpid el que hi ha a localStorage
@@ -4113,3 +4313,5 @@
  
 </body>
 </html>
+
+
