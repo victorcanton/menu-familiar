@@ -2,7 +2,11 @@
 <html lang="ca">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Menú setmanal" />
   <title>Menú setmanal</title>
   <style>
     
@@ -459,6 +463,9 @@
     align-items:center;
     justify-content:center;
     padding: 18px;
+    z-index: 9999;
+    padding-top: max(18px, env(safe-area-inset-top));
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
   }
 
   .overlay.open{ display:flex; }
@@ -471,18 +478,23 @@
     box-shadow: 0 30px 80px rgba(0,0,0,0.25);
     padding: 14px;
     backdrop-filter: blur(6px);
-    height: 92vh;
+    height: min(92vh, 100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: 90svh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .modalBody {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr;
     gap: 0;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
   }
 
   .modalHeader{
