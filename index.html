@@ -1170,10 +1170,10 @@
     grid-row: 1 / 3;
   }
 
-  /* Fix icon picker to fit in grid cell - 2 ROWS x 5 COLUMNS */
+  /* Fix icon picker to fit in grid cell - 2 ROWS x 6 COLUMNS */
   .rhIcon .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 4px;
     padding: 4px;
     background: rgba(255,255,255,0.85);
@@ -1237,14 +1237,14 @@
   /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
     padding: 8px;
     background: rgba(255,255,255,0.85);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 8px;
-    max-width: 300px;
+    max-width: 350px;
   }
   .rhIcon .iconPreview {
     display: flex;
@@ -1413,7 +1413,9 @@
       pasta:     "1f35d",  // 🍝 Pasta
       rice:      "1f35a",  // 🍚 Arròs
       potato:    "1f954",  // 🥔 Patates
-      dairy:     "1f9c0"   // 🧀 Làctics
+      dairy:     "1f9c0",  // 🧀 Làctics
+      nuts:      "1f95c",  // 🥜 Fruits secs
+      cereals:   "1f33e"   // 🌾 Cereals
     };
 
     const ICON_LABELS = {
@@ -1426,13 +1428,15 @@
       pasta:     "Pasta",
       rice:      "Arròs",
       potato:    "Patates",
-      dairy:     "Làctics"
+      dairy:     "Làctics",
+      nuts:      "Fruits secs",
+      cereals:   "Cereals"
     };
 
     // L’ordre com vols que surtin al desplegable
     const ICON_KEYS = [
-      "meat", "fish", "egg", "beans", "vegetable",
-      "fruit", "pasta", "rice", "potato", "dairy"
+      "meat", "fish", "egg", "beans", "vegetable", "fruit",
+      "pasta", "rice", "potato", "dairy", "nuts", "cereals"
     ];
 
 
