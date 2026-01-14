@@ -2320,7 +2320,23 @@
 
       
 
-      modalBody.innerHTML = noteBlock + topBar + pickerCols;
+      // Actualizar cabecera con título, fecha, búsqueda y botón cerrar
+      const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
+      const mealLabel = MEALS.find(x=>x.key===mealKey)?.label || mealKey;
+      modalHeader.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+          <div>
+            <div class="modalTitle">Editar ${mealLabel} • ${date}</div>
+          </div>
+          <div class="pickerSearch" style="flex: 1; margin-left: auto;">
+            <span class="muted">🔎</span>
+            <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
+          </div>
+        </div>
+        <button id="closeBtn">Tancar</button>
+      `;
+
+      modalBody.innerHTML = noteBlock + pickerCols;
 
       // Toggle nota
       const toggleNoteBtn = document.getElementById("toggleNoteBtn");
@@ -2334,7 +2350,16 @@
         });
       }
 
-      // Cerrar modal desde el botón dentro del topBar
+      // Cerrar modal desde el botón de la cabecera (nuevo)
+      const newCloseBtn = document.getElementById("closeBtn");
+      if (newCloseBtn) {
+        newCloseBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          closeCell();
+        });
+      }
+
+      // Cerrar modal desde el botón dentro del topBar (si existe - legacy)
       const closeModalBtn = document.getElementById("closeModalSearchBtn");
       if (closeModalBtn) {
         closeModalBtn.addEventListener("click", (e) => {
