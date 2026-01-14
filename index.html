@@ -1455,12 +1455,6 @@
 
     <h3>Catàleg de plats</h3>
 
-    <!-- Recipe Filter Bar -->
-    <div class="recipeFilterBar">
-      <span class="recipeFilterLabel">Filtra per ingredient:</span>
-      <div class="recipeFilterIcons" id="recipeFilterIcons"></div>
-    </div>
-
     <div class="panel">
       <div class="panelTitle">
         <div class="muted">Afegeix plats i classifica’ls per tipus</div>
@@ -2196,7 +2190,6 @@
         initDefaultWeek();
         await preloadTwemojiSvgs();
         initializeIconPickers();
-        initializeRecipeFilterBar();
         
         // Ensure auth is set up first
         await bootstrapAuth();
@@ -2252,9 +2245,173 @@
 
 
 
+    function createRecipeFilterBarForModal() {
+      const keys = ICON_KEYS;
+      let html = `
+        <div class="recipeFilterBar" id="modalRecipeFilterBar">
+          <span class="recipeFilterLabel">Filtra per ingredient:</span>
+          <div class="recipeFilterIcons" id="modalRecipeFilterIcons">
+      `;
+      
+      for (const key of keys) {
+        const iconSvg = twemojiSvgIcon(key) || twemojiSvgIcon("plate");
+        const label = ICON_LABELS[key] || key;
+        html += `
+          <button type="button" class="recipeFilterBtn" data-icon-key="${key}" 
+                  title="Filtra per ${label}" onclick="toggleModalRecipeFilter('${key}', this)">
+            ${iconSvg}
+          </button>
+        `;
+      }
+      
+      html += `
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    window.toggleModalRecipeFilter = function(key, btnEl) {
+      if (RECIPE_FILTER_ICON === key) {
+        RECIPE_FILTER_ICON = null;
+        btnEl.classList.remove("active");
+      } else {
+        // Deselecciona el botón anterior si existe
+        const prevBtn = document.querySelector("#modalRecipeFilterIcons .recipeFilterBtn.active");
+        if (prevBtn) {
+          prevBtn.classList.remove("active");
+        }
+        RECIPE_FILTER_ICON = key;
+        btnEl.classList.add("active");
+      }
+      
+      // Re-renderiza las columnas del modal
+      rerenderModalRecipeColumns();
+    };
+
+    function rerenderModalRecipeColumns() {
+      if (!OPEN_CELL) return;
+      
+      const { date, mealKey } = OPEN_CELL;
+      const courses = coursesForMeal(mealKey);
+      
+      // Re-render cada columna
+      for (const course of courses) {
+        const col = document.getElementById(`col_${course}`);
+        if (col) {
+          col.innerHTML = renderModalColumn(date, mealKey, course);
+        }
+      }
+    }
+
+    function renderModalColumn(date, mealKey, course) {
+      const sid = slotId(date, mealKey, course);
+      
+      // Obtener estado actual (puede estar en DIRTY_SLOTS o en PLAN)
+      const currentByCourse = {};
+      const courses = coursesForMeal(mealKey);
+      courses.forEach(c => {
+        const s = slotId(date, mealKey, c);
+        const current = findSlot(s);
+        currentByCourse[c] = current?.recipe_id ? String(current.recipe_id) : "";
+      });
+      
+      const baseline = currentByCourse[course] || "";
+      const selectedId = (DIRTY_SLOTS[sid] && !DIRTY_SLOTS[sid].__delete)
+        ? String(DIRTY_SLOTS[sid].recipe_id || "")
+        : baseline;
+
+      // Obtener lista de recetas (aplicando filtro)
+      let recipes = RECIPES
+        .filter(r => {
+          if (course !== "plat") return allowedForCourse(r, course);
+          if (mealKey === "breakfast") return String(r.category||"") === "Esmorzar";
+          if (mealKey === "snack")     return String(r.category||"") === "Berenar";
+          return true;
+        });
+      
+      // Aplicar filtro por icono si hay uno activo
+      if (RECIPE_FILTER_ICON) {
+        recipes = recipes.filter(r => {
+          let iconKeys = [];
+          if (r.icons) {
+            try {
+              iconKeys = JSON.parse(r.icons);
+            } catch (e) {}
+          } else if (r.icon) {
+            iconKeys = [r.icon];
+          }
+          if (iconKeys.length === 0) {
+            iconKeys = [recipeIconKey(r)];
+          }
+          return iconKeys.includes(RECIPE_FILTER_ICON);
+        });
+      }
+      
+      const list = rankRecipes(recipes)
+        .map(r => {
+          const rid = String(r.id);
+          const isSel = rid === String(selectedId);
+          const safeName = String(r.name||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+          
+          let iconHtml = "";
+          if (r.icons) {
+            try {
+              const iconKeys = JSON.parse(r.icons);
+              if (Array.isArray(iconKeys) && iconKeys.length > 0) {
+                iconHtml = iconKeys.map(key => twemojiSvgIcon(key)).join("");
+              }
+            } catch (e) {}
+          }
+          
+          return `
+            <button class="rCard ${isSel ? "selected":""}"
+              data-course="${course}"
+              data-rid="${rid}"
+              data-name="${norm_(r.name)}"
+              onclick="onPick('${date}','${mealKey}','${course}','${rid}')">
+              <div style="display:flex; flex-direction:column; gap:2px; flex: 1;">
+                <div class="rName">${safeName}</div>
+                <div class="rMeta">${(r.count||0)} usos</div>
+              </div>
+              ${iconHtml ? `<div style="display:flex; gap:4px; align-items:center; flex: 0 0 auto;">${iconHtml}</div>` : ""}
+            </button>
+          `;
+        }).join("");
+
+      function colTitle(c){
+        if (c === "plat") {
+          return MEALS.find(x=>x.key===mealKey)?.label || "Plats";
+        }
+        if (c === "primer") return "Primers";
+        if (c === "segon") return "Segons";
+        if (c === "unic") return "Plats únics";
+        return "Plats";
+      }
+
+      const currentLabel = selectedId ? getRecipeName(selectedId) : "— Cap —";
+
+      return `
+        <div class="pickerColHeader">
+          <div>
+            <div class="pickerColTitle">${colTitle(course)}</div>
+            <div class="pickerCurrent" id="current_${course}">Ara: ${currentLabel}</div>
+          </div>
+          <button class="btnGhost" onclick="onPick('${date}','${mealKey}','${course}','')">— Cap —</button>
+        </div>
+        <div class="pickerList" id="list_${course}">
+          ${list || '<div class="muted" style="padding:6px 4px;">No hi ha plats per mostrar.</div>'}
+        </div>
+      `;
+    }
+
     window.openCellEditor = async (date, mealKey) => {
       IS_IN_MODAL = true;
       if (VIEW_MODE === "view") return;
+      
+      // Reiniciar filtro al abrir modal
+      RECIPE_FILTER_ICON = null;
+
 
       OPEN_CELL = { date, mealKey };
 
@@ -2314,84 +2471,26 @@
 
 
       function renderColumn(course){
-        const sid = slotId(date, mealKey, course);
-        const baseline = currentByCourse[course] || "";
-
-        // si ja hi ha un canvi pendent, que el modal reflecteixi això
-        const selectedId = (DIRTY_SLOTS[sid] && !DIRTY_SLOTS[sid].__delete)
-          ? String(DIRTY_SLOTS[sid].recipe_id || "")
-          : baseline;
-
-        const list = rankRecipes(RECIPES)
-          .filter(r => {
-            if (course !== "plat") return allowedForCourse(r, course);
-
-            // course="plat" per esmorzar/berenar: filtra per categoria
-            if (mealKey === "breakfast") return String(r.category||"") === "Esmorzar";
-            if (mealKey === "snack")     return String(r.category||"") === "Berenar";
-
-            // per defecte (si algun altre meal tingués "plat")
-            return true;
-          })
-          .map(r => {
-            const rid = String(r.id);
-            const isSel = rid === String(selectedId);
-            const safeName = String(r.name||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-            
-            // Renderizar iconos de ingredientes si existen
-            let iconHtml = "";
-            if (r.icons) {
-              try {
-                const iconKeys = JSON.parse(r.icons);
-                if (Array.isArray(iconKeys) && iconKeys.length > 0) {
-                  iconHtml = iconKeys.map(key => twemojiSvgIcon(key)).join("");
-                }
-              } catch (e) {
-                // ignorar si hay error al parsear JSON
-              }
-            }
-            
-            return `
-              <button class="rCard ${isSel ? "selected":""}"
-                data-course="${course}"
-                data-rid="${rid}"
-                data-name="${norm_(r.name)}"
-                onclick="onPick('${date}','${mealKey}','${course}','${rid}')">
-                <div style="display:flex; flex-direction:column; gap:2px; flex: 1;">
-                  <div class="rName">${safeName}</div>
-                  <div class="rMeta">${(r.count||0)} usos</div>
-                </div>
-                ${iconHtml ? `<div style="display:flex; gap:4px; align-items:center; flex: 0 0 auto;">${iconHtml}</div>` : ""}
-              </button>
-            `;
-          }).join("");
-
-        const currentLabel = selectedId ? getRecipeName(selectedId) : "— Cap —";
-
-        return `
-          <div class="pickerCol" id="col_${course}">
-            <div class="pickerColHeader">
-              <div>
-                <div class="pickerColTitle">${colTitle(course)}</div>
-                <div class="pickerCurrent" id="current_${course}">Ara: ${currentLabel}</div>
-              </div>
-              <button class="btnGhost" onclick="onPick('${date}','${mealKey}','${course}','')">— Cap —</button>
-            </div>
-            <div class="pickerList" id="list_${course}">
-              ${list || '<div class="muted" style="padding:6px 4px;">No hi ha plats per mostrar.</div>'}
-            </div>
-          </div>
-        `;
+        return renderModalColumn(date, mealKey, course);
       }
 
+      // Construir pickerCols combinando todas las columnas
+      const pickerColsContent = courses.map(course => {
+        const colContent = renderModalColumn(date, mealKey, course);
+        return `<div class="pickerCol" id="col_${course}">${colContent}</div>`;
+      }).join("");
+      
       const pickerCols = `
         <div class="pickerCols">
-          ${courses.map(renderColumn).join("")}
+          ${pickerColsContent}
         </div>
       `;
-
-
       
+      // Crear barra de filtros
+      const filterBarHtml = createRecipeFilterBarForModal();
+      
+      // Build modalBody con filtro + picker
+      const modalBodyContent = filterBarHtml + pickerCols;
 
       // Actualizar cabecera con título, fecha, búsqueda, toggle comentarios y botón cerrar
       const modalHeader = overlay?.querySelector(".modalHeader");
@@ -2413,7 +2512,7 @@
         `;
       }
 
-      modalBody.innerHTML = noteBlock + pickerCols;
+      modalBody.innerHTML = noteBlock + modalBodyContent;
 
       // Toggle nota desde botón en cabecera
       const toggleNoteHeaderBtn = document.getElementById("toggleNoteHeaderBtn");
@@ -2608,6 +2707,7 @@
       overlay.classList.remove("open");
       OPEN_CELL = null;
       IS_IN_MODAL = false;
+      RECIPE_FILTER_ICON = null; // Reiniciar filtro al cerrar modal
 
       // Restaurar modalHeader original
       const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
