@@ -1126,13 +1126,14 @@
 
   .recipeHeaderGrid{
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     align-items: flex-start;
   }
 
   .rhName {
     grid-column: 1;
+    grid-row: 1;
   }
 
   .rhName input {
@@ -1141,10 +1142,15 @@
 
   .rhCat {
     grid-column: 2;
+    grid-row: 1;
   }
 
   .rhIcon {
     grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
   }
 
   /* Fix icon picker to fit in grid cell - 3 ROWS x 8 COLUMNS */
@@ -1158,6 +1164,7 @@
     border-radius: 12px;
     margin: 0;
     flex: 1;
+    min-width: 300px;
   }
 
   .rhIcon .iconPickerBtn {
@@ -1192,7 +1199,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    width: 100%;
+    min-width: 80px;
+    max-width: 150px;
     min-height: 40px;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
