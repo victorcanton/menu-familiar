@@ -1399,7 +1399,7 @@
       meat:      "1f356",  // 🍖 Carn
       fish:      "1f41f",  // 🐟 Peix
       egg:       "1f95a",  // 🥚 Ous
-      beans:     "1f335",  // 🌵 Llegums (placeholder, usar 1faa8 si disponible para faves)
+      beans:     "1faa8",  // 🫘 Llegums (Fava Beans)
       vegetable: "1f966",  // 🥦 Verdura
       fruit:     "1f34e",  // 🍎 Fruita
       pasta:     "1f35d",  // 🍝 Pasta
@@ -2559,7 +2559,6 @@
         const row = document.createElement("div");
         row.className = "recipeRow" + (String(r.id) === String(SELECTED_RECIPE_ID) ? " selected" : "");
         row.innerHTML = `
-          <div class="recipeBadge">${twemojiSvgIcon(recipeIconKey(r))}</div>
           <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
             <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(r.name||"")}</div>
             <div class="muted" style="font-size:12px;">${(r.category||"")}</div>
