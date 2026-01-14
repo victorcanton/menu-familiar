@@ -1,5 +1,5 @@
 import { verifyJWT } from "../_lib/jwt";
-import { hashCode } from "../_lib/crypto";
+import { hashCode, generateSalt } from "../_lib/crypto";
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
@@ -213,11 +213,7 @@ export async function onRequestPost({ request, env }) {
       const last4 = code.slice(-4);
 
       // Generar salt aleatorio
-      const saltArray = new Uint8Array(16);
-      crypto.getRandomValues(saltArray);
-      const codeSalt = Array.from(saltArray)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
+      const codeSalt = generateSalt();
 
       // Hashear el código
       const codeHash = await hashCode(code, codeSalt);
@@ -265,11 +261,7 @@ export async function onRequestPost({ request, env }) {
       }
 
       // Generar salt aleatorio
-      const saltArray = new Uint8Array(16);
-      crypto.getRandomValues(saltArray);
-      const codeSalt = Array.from(saltArray)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
+      const codeSalt = generateSalt();
 
       // Hashear el código
       const codeHash = await hashCode(String(newCode), codeSalt);
@@ -309,11 +301,7 @@ export async function onRequestPost({ request, env }) {
       }
 
       // Generar salt aleatorio
-      const saltArray = new Uint8Array(16);
-      crypto.getRandomValues(saltArray);
-      const codeSalt = Array.from(saltArray)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
+      const codeSalt = generateSalt();
 
       // Hashear el código
       const codeHash = await hashCode(String(newCode), codeSalt);

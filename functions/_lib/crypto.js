@@ -5,3 +5,11 @@ export async function hashCode(code, salt) {
     .map(b => b.toString(16).padStart(2, "0"))
     .join("");
 }
+export function generateSalt() {
+  // Generar salt aleatorio de 16 bytes
+  const saltArray = new Uint8Array(16);
+  crypto.getRandomValues(saltArray);
+  return Array.from(saltArray)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
