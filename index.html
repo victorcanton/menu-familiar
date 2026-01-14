@@ -476,6 +476,15 @@
     flex-direction: column;
   }
 
+  .modalBody {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 0;
+  }
+
   .modalHeader{
     display:flex;
     justify-content:space-between;
@@ -756,11 +765,12 @@
   /* --- Recipe picker (modal) --- */
   .pickerTop{
     grid-column: 1 / -1;
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap: wrap;
-    padding: 6px 2px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 2px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    flex-wrap: nowrap;
   }
   .pickerSearch{
     flex: 1 1 220px;
@@ -2178,20 +2188,25 @@
       const existingNote = findNote(date, mealKey);
 
       const noteBlock = `
-        <div class="noteField">
-          <label>Comentari (opcional)</label>
+        <div class="noteField" id="noteSection" style="display: none;">
+          <div class="noteField" style="margin-bottom: 0;">
+            <label>Comentari (opcional)</label>
 
-          <div class="noteInputWrap">
-            <textarea id="noteBox" rows="1"
-              placeholder="Ex: Dinem fora, aniversari...">${existingNote || ""}</textarea>
+            <div class="noteInputWrap">
+              <textarea id="noteBox" rows="1"
+                placeholder="Ex: Dinem fora, aniversari...">${existingNote || ""}</textarea>
 
-            <button id="clearNoteBtn" type="button" class="noteClearBtn" aria-label="Esborrar comentari">×</button>
+              <button id="clearNoteBtn" type="button" class="noteClearBtn" aria-label="Esborrar comentari">×</button>
+            </div>
+
+            <div class="noteActions">
+              <button id="saveNoteBtn" type="button" class="btnGhost">Guardar comentari</button>
+              <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda per eliminar-lo.</span>
+            </div>
           </div>
-
-          <div class="noteActions">
-            <button id="saveNoteBtn" type="button" class="btnGhost">Guardar comentari</button>
-            <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda per eliminar-lo.</span>
-          </div>
+        </div>
+        <div style="padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,0.08);">
+          <button id="toggleNoteBtn" type="button" class="btnGhost" style="font-size: 12px;">▸ Afegir/editar comentari</button>
         </div>
       `;
 
@@ -2204,11 +2219,12 @@
 
       const topBar = `
         <div class="pickerTop">
+          <div style="flex: 0 0 auto; font-weight: 600; font-size: 16px;">Editar ${MEALS.find(x=>x.key===mealKey)?.label || mealKey} • ${date}</div>
           <div class="pickerSearch">
             <span class="muted">🔎</span>
             <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
           </div>
-          <div class="muted" style="font-size:12px;">Tria ràpid: es guarda en tancar.</div>
+          <button id="closeModalSearchBtn" type="button" class="btnGhost" style="flex: 0 0 auto;">Tancar</button>
         </div>
       `;
 
@@ -2291,6 +2307,27 @@
       
 
       modalBody.innerHTML = noteBlock + topBar + pickerCols;
+
+      // Toggle nota
+      const toggleNoteBtn = document.getElementById("toggleNoteBtn");
+      const noteSection = document.getElementById("noteSection");
+      if (toggleNoteBtn && noteSection) {
+        toggleNoteBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const isHidden = noteSection.style.display === "none";
+          noteSection.style.display = isHidden ? "block" : "none";
+          toggleNoteBtn.textContent = isHidden ? "▾ Afegir/editar comentari" : "▸ Afegir/editar comentari";
+        });
+      }
+
+      // Cerrar modal desde el botón dentro del topBar
+      const closeModalBtn = document.getElementById("closeModalSearchBtn");
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          closeCell();
+        });
+      }
 
       const noteBox = document.getElementById("noteBox");
       const clearBtn = document.getElementById("clearNoteBtn");
