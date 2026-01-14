@@ -1128,7 +1128,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .rhName {
@@ -1145,12 +1145,21 @@
     grid-row: 1;
   }
 
+  .rhCat select {
+    width: 100%;
+  }
+
   .rhIcon {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
     display: flex;
-    gap: 8px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #rIconPicker {
+    grid-column: 2;
+    grid-row: 1 / 3;
   }
 
   /* Fix icon picker to fit in grid cell - 3 ROWS x 8 COLUMNS */
@@ -1163,8 +1172,7 @@
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin: 0;
-    flex: 1;
-    min-width: 300px;
+    width: 100%;
   }
 
   .rhIcon .iconPickerBtn {
@@ -1198,16 +1206,15 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 8px;
-    min-width: 80px;
-    max-width: 150px;
-    min-height: 40px;
-    border-radius: 12px;
+    gap: 4px;
+    width: 100%;
+    min-height: 35px;
+    border-radius: 8px;
     background: rgba(255,255,255,0.85);
     border: 2px solid rgba(0,0,0,0.08);
     flex: 0 0 auto;
     flex-wrap: wrap;
-    padding: 4px;
+    padding: 3px;
   }
 
   .rhIcon .iconPreview .twSvg {
@@ -3392,12 +3399,11 @@
                 </div>
 
                 <div class="rhIcon">
-                  <div>
-                    <div class="iconPickerHelper">Pots seleccionar fins a 3 icones.</div>
-                    <div id="rIconPicker" class="iconPickerGrid"></div>
-                  </div>
+                  <div class="iconPickerHelper">Pots seleccionar fins a 3 icones.</div>
                   <span id="rIconPreview" class="iconPreview" aria-hidden="true"></span>
                 </div>
+
+                <div id="rIconPicker" class="iconPickerGrid"></div>
               </div>
               <input type="hidden" id="rIconValue">
 
