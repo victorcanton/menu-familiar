@@ -336,15 +336,22 @@
     .gcNavBtn{
       width: 32px;
       height: 32px;
+      flex-shrink: 0;
     }
 
     .weekPill{
-      padding: 6px 10px;
-      font-size: 12px;
-      max-width: 120px;
+      padding: 6px 8px;
+      font-size: 13px;
+      flex: 0 1 auto;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .weekControls {
+      flex-wrap: nowrap;
+      justify-content: center;
+      gap: 6px;
     }
   }
 
@@ -1658,7 +1665,7 @@
       
         <!-- Login form (cuando no autenticado) -->
         <div id="loginForm" style="display: flex; gap: 8px; align-items: center;">
-          <input id="familyCodeInput" placeholder="Codi família (ex: CASA-1234)" />
+          <input id="familyCodeInput" placeholder="Codi família" />
           <button id="loginBtn">Login</button>
         </div>
       </div>
@@ -2012,6 +2019,14 @@
       return out;
     }
 
+    function getISOWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
     function formatWeekLabel(mondayDate){
       const sunday = addDaysDate(mondayDate, 6);
       
@@ -2023,6 +2038,11 @@
       };
       
       return `${formatShortCa(mondayDate)} → ${formatShortCa(sunday)}`;
+    }
+
+    function formatWeekNumber(mondayDate) {
+      const weekNum = getISOWeekNumber(mondayDate);
+      return `Setmana ${weekNum}`;
     }
 
 
@@ -2159,14 +2179,11 @@
       if (!weekLabel) return;
       
       if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
+        // In daily view: show week number instead of date range
         const d = parseISO(CURRENT_DISPLAY_DATE);
-        const months = ["gen", "feb", "mar", "abr", "mai", "jun", "jul", "ago", "set", "oct", "nov", "des"];
-        const day = d.getDate();
-        const month = months[d.getMonth()];
-        const dayNames = ["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
-        const dayName = dayNames[d.getDay()];
-        weekLabel.textContent = `${dayName}, ${day} ${month}`;
-        weekLabel.style.fontSize = "18px";
+        const weekNum = getISOWeekNumber(d);
+        weekLabel.textContent = `Setmana ${weekNum}`;
+        weekLabel.style.fontSize = "14px";
         weekLabel.style.fontWeight = "600";
       } else if (weekLabel.textContent) {
         weekLabel.style.fontSize = "";
