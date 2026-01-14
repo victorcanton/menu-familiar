@@ -1321,6 +1321,7 @@
   /* Recipe filter bar - single row of icons in header */
   .recipeFilterBar {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
@@ -1328,7 +1329,6 @@
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 12px;
-    flex-wrap: wrap;
   }
 
   .recipeFilterLabel {
@@ -1342,6 +1342,7 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
   }
 
@@ -2249,7 +2250,6 @@
       const keys = ICON_KEYS;
       let html = `
         <div class="recipeFilterBar" id="modalRecipeFilterBar">
-          <span class="recipeFilterLabel">Filtra per ingredient:</span>
           <div class="recipeFilterIcons" id="modalRecipeFilterIcons">
       `;
       
