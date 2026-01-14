@@ -22,7 +22,13 @@ export async function onRequestGet({ request, env }) {
     const v = await verifyJWT(token, env.JWT_SECRET);
     if (!v.ok) return json({ ok: false, error: v.error }, 401);
 
-    return json({ ok: true, payload: v.payload });
+    // Añadir role al payload si está disponible
+    const payload = {
+      ...v.payload,
+      role: v.payload.role || "member"
+    };
+
+    return json({ ok: true, payload });
   } catch (e) {
     return json({ ok: false, error: "Server error", detail: String(e) }, 500);
   }

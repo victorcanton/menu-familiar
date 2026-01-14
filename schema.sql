@@ -8,9 +8,11 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS families (
   id              TEXT PRIMARY KEY,              -- e.g. "fam_9f3a..."
   name            TEXT NOT NULL,                 -- display name
+  display_name    TEXT,                          -- user-editable display name (shown in UI)
   code_hash       TEXT NOT NULL,                 -- base64 hash (PBKDF2) of family code
   code_salt       TEXT NOT NULL,                 -- base64 salt
   code_last4      TEXT,                          -- for admin UI (non-sensitive hint)
+  role            TEXT DEFAULT 'member',         -- 'admin' or 'member'
   created_at      TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
   code_rotated_at TEXT

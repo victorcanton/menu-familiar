@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
     const last4 = code.slice(-4);
 
     const candidates = await env.DB
-      .prepare("SELECT id, name, code_hash, code_salt FROM families WHERE code_last4 = ?1")
+      .prepare("SELECT id, name, role, code_hash, code_salt FROM families WHERE code_last4 = ?1")
       .bind(last4)
       .all();
 
@@ -50,13 +50,13 @@ export async function onRequestPost({ request, env }) {
 
     // ... quan tens family valida:
     const token = await createJWT(
-      { family_id: family.id, family_name: family.name },
+      { family_id: family.id, family_name: family.name, role: family.role || "member" },
       env.JWT_SECRET,
       { expiresInSec: 60 * 60 * 24 * 30 }
     );
     
 
-    return json({ ok: true, token, family: { id: family.id, name: family.name } });
+    return json({ ok: true, token, family: { id: family.id, name: family.name, role: family.role || "member" } });
   } catch (err) {
     return json({ ok: false, error: "Server error", detail: String(err) }, 500);
   }
