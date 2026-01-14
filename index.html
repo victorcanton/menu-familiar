@@ -1317,6 +1317,80 @@
     background: rgba(59,130,246,0.15);
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
+
+  /* Recipe filter bar - single row of icons in header */
+  .recipeFilterBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .recipeFilterLabel {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .recipeFilterIcons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .recipeFilterBtn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2px solid rgba(0,0,0,0.12);
+    background: rgba(255,255,255,0.9);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 140ms ease;
+    flex-shrink: 0;
+  }
+
+  .recipeFilterBtn:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.05);
+    transform: scale(1.08);
+  }
+
+  .recipeFilterBtn.active {
+    border-color: rgba(59,130,246,0.8);
+    background: rgba(59,130,246,0.2);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.2);
+    transform: scale(1.1);
+  }
+
+  .recipeFilterBtn.active:hover {
+    background: rgba(59,130,246,0.25);
+  }
+
+  .recipeFilterClear {
+    margin-left: 4px;
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0.7;
+    transition: opacity 140ms ease;
+  }
+
+  .recipeFilterClear:hover {
+    opacity: 1;
+    color: var(--text);
+  }
+
   .iconPickerHelper {
     font-size: 12px;
     color: rgba(0,0,0,0.55);
@@ -1381,6 +1455,12 @@
 
     <h3>Catàleg de plats</h3>
 
+    <!-- Recipe Filter Bar -->
+    <div class="recipeFilterBar">
+      <span class="recipeFilterLabel">Filtra per ingredient:</span>
+      <div class="recipeFilterIcons" id="recipeFilterIcons"></div>
+    </div>
+
     <div class="panel">
       <div class="panelTitle">
         <div class="muted">Afegeix plats i classifica’ls per tipus</div>
@@ -1427,6 +1507,7 @@
     let WEEK_START_ISO = null; // dilluns (YYYY-MM-DD)
     let NOTES = []; // {date, meal, note}
     let RV_RECIPE_ID = null;
+    let RECIPE_FILTER_ICON = null; // Filter by icon key: null = show all
 
     // --- Twemoji SVG (CDN) ---
     const TWEMOJI_VERSION = "14.0.2";
@@ -2115,6 +2196,7 @@
         initDefaultWeek();
         await preloadTwemojiSvgs();
         initializeIconPickers();
+        initializeRecipeFilterBar();
         
         // Ensure auth is set up first
         await bootstrapAuth();
@@ -2654,7 +2736,8 @@
       const listEl = document.getElementById("recipeList");
       listEl.innerHTML = "";
 
-      const items = rankRecipes(RECIPES).filter(r => {
+      // Usa getFilteredRecipes() en lugar de RECIPES para aplicar el filtro
+      const items = rankRecipes(getFilteredRecipes()).filter(r => {
         if (!q) return true;
         return norm_(r.name || "").includes(q);
       });
@@ -3194,6 +3277,73 @@
       if (recipePickerEl) {
         fillIconPicker(recipePickerEl);
       }
+    }
+
+    function initializeRecipeFilterBar() {
+      const filterContainer = document.getElementById("recipeFilterIcons");
+      if (!filterContainer) return;
+
+      filterContainer.innerHTML = "";
+      const keys = ICON_KEYS;
+
+      for (const key of keys) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "recipeFilterBtn";
+        btn.dataset.iconKey = key;
+        btn.title = `Filtra per ${ICON_LABELS[key] || key}`;
+        
+        // Render the icon
+        const iconHtml = twemojiSvgIcon(key) || twemojiSvgIcon("plate");
+        btn.innerHTML = iconHtml;
+        
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          // Toggle: si ja està seleccionat, deselecciona; si no, selecciona
+          if (RECIPE_FILTER_ICON === key) {
+            RECIPE_FILTER_ICON = null; // Deselecciona
+            btn.classList.remove("active");
+          } else {
+            // Deselecciona el botó anterior si existeix
+            const prevBtn = filterContainer.querySelector(".recipeFilterBtn.active");
+            if (prevBtn) {
+              prevBtn.classList.remove("active");
+            }
+            RECIPE_FILTER_ICON = key; // Selecciona el nou
+            btn.classList.add("active");
+          }
+          
+          // Actualitza la llista de receptes
+          renderRecipeList();
+        });
+        
+        filterContainer.appendChild(btn);
+      }
+    }
+
+    function getFilteredRecipes() {
+      if (!RECIPE_FILTER_ICON) {
+        return RECIPES; // Si no hi ha filtre, retorna totes
+      }
+      
+      // Filtra per icones que conté el key seleccionat
+      return RECIPES.filter(r => {
+        let iconKeys = [];
+        if (r.icons) {
+          try {
+            iconKeys = JSON.parse(r.icons);
+          } catch (e) {}
+        } else if (r.icon) {
+          iconKeys = [r.icon];
+        }
+        
+        // Si la recepta no té iconos, assigna l'icono automàtic
+        if (iconKeys.length === 0) {
+          iconKeys = [recipeIconKey(r)];
+        }
+        
+        return iconKeys.includes(RECIPE_FILTER_ICON);
+      });
     }
 
     function selectIconInPicker(pickerEl, iconKey) {
