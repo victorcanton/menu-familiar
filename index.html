@@ -2178,11 +2178,6 @@
 
       const overlay = document.getElementById("overlay");
       const modalBody = document.getElementById("modalBody");
-      const title = document.getElementById("modalTitle");
-      const sub = document.getElementById("modalSub");
-
-      title.textContent = `Editar ${MEALS.find(x=>x.key===mealKey)?.label || mealKey}`;
-      sub.textContent = `${date}`;
 
       const courses = coursesForMeal(mealKey);
       const existingNote = findNote(date, mealKey);
@@ -2355,7 +2350,7 @@
       if (newCloseBtn) {
         newCloseBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          closeCell();
+          closeModal();
         });
       }
 
@@ -2364,7 +2359,7 @@
       if (closeModalBtn) {
         closeModalBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          closeCell();
+          closeModal();
         });
       }
 
@@ -2541,6 +2536,22 @@
       overlay.classList.remove("open");
       OPEN_CELL = null;
       IS_IN_MODAL = false;
+
+      // Restaurar modalHeader original
+      const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
+      modalHeader.innerHTML = `
+        <div>
+          <div id="modalTitle" class="modalTitle">Editar</div>
+          <div id="modalSub" class="muted"></div>
+        </div>
+        <button id="closeBtn">Tancar</button>
+      `;
+
+      // Re-attach event listener para el nuevo closeBtn
+      const newCloseBtn = modalHeader.querySelector("#closeBtn");
+      if (newCloseBtn) {
+        newCloseBtn.addEventListener("click", closeModal);
+      }
 
       const changes = Object.values(DIRTY_SLOTS);
       if (!changes.length) return;
