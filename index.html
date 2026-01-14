@@ -2882,7 +2882,20 @@
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#39;");
 
-      title.innerHTML = `${twemojiSvgIcon(recipeIconKey(r))} <span>${safeName}</span>`;
+      // Renderizar iconos de ingredientes si existen
+      let iconHtml = "";
+      if (r.icons) {
+        try {
+          const iconKeys = JSON.parse(r.icons);
+          if (Array.isArray(iconKeys) && iconKeys.length > 0) {
+            iconHtml = iconKeys.map(key => twemojiSvgIcon(key)).join(" ");
+          }
+        } catch (e) {
+          // ignorar si hay error al parsear JSON
+        }
+      }
+
+      title.innerHTML = `<span>${safeName}</span>${iconHtml ? ` ${iconHtml}` : ""}`;
 
       meta.textContent  = String(r.category || "");
 
