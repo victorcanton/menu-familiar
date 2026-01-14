@@ -90,12 +90,6 @@
     flex-wrap:wrap;
   }
 
-  .newRecipeForm {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
   /* Toast */
   .toastWrap{
     position: fixed;
@@ -1282,24 +1276,25 @@
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
 
-  .rhIcon .iconPreview {
+  /* Icon preview - shows selected icons with larger size */
+  .iconPreview {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 4px;
-    width: 100%;
-    min-height: 35px;
+    gap: 8px;
+    width: auto;
+    min-height: 48px;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
     border: 2px solid rgba(0,0,0,0.08);
     flex: 0 0 auto;
     flex-wrap: wrap;
-    padding: 3px;
+    padding: 6px;
   }
 
-  .rhIcon .iconPreview .twSvg {
-    width: 28px;
-    height: 28px;
+  .iconPreview .twSvg {
+    width: 36px;
+    height: 36px;
   }
 
   .rhIcon:has(.iconPreview:empty) {
@@ -1309,41 +1304,14 @@
   /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 12px;
-    padding: 12px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    padding: 8px;
     background: rgba(255,255,255,0.85);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 8px;
-    width: 100%;
-  }
-  
-  .newRecipeForm .iconPickerGrid .iconPickerBtn {
-    width: 100%;
-    aspect-ratio: 1;
-    padding: 0;
-    border: 2px solid rgba(0,0,0,0.1);
-    background: rgba(255,255,255,0.9);
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: all 120ms ease;
-  }
-  
-  .newRecipeForm .iconPickerGrid .iconPickerBtn:hover {
-    border-color: rgba(59,130,246,0.35);
-    background: rgba(59,130,246,0.05);
-    transform: scale(1.05);
-  }
-  
-  .newRecipeForm .iconPickerGrid .iconPickerBtn.selected {
-    border-color: rgba(59,130,246,0.8);
-    background: rgba(59,130,246,0.15);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    max-width: 350px;
   }
   .rhIcon .iconPreview {
     display: flex;
@@ -1573,6 +1541,26 @@
     width: 24px;
     height: 24px;
   }
+
+  /* Icon preview for recipe form - larger icons to match selector */
+  #newIconPreview.iconPreview {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: auto;
+    min-height: 48px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.85);
+    border: 2px solid rgba(0,0,0,0.08);
+    padding: 6px;
+    flex-wrap: wrap;
+  }
+
+  #newIconPreview.iconPreview .twSvg {
+    width: 36px;
+    height: 36px;
+  }
   </style>
 
 </head>
@@ -1625,24 +1613,20 @@
     <h3>Catàleg de plats</h3>
 
     <div class="panel">
-      <div class="newRecipeForm">
-        <div class="row">
-          <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-          <select id="newCat">
-            <option value="Primer">Primer</option>
-            <option value="Segon">Segon</option>
-            <option value="Plat únic">Plat únic</option>
-            <option value="Esmorzar">Esmorzar</option>
-            <option value="Berenar">Berenar</option>
-          </select>
-        </div>
-        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 100%;"></div>
+      <div class="row">
+        <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
+        <select id="newCat">
+          <option value="Primer">Primer</option>
+          <option value="Segon">Segon</option>
+          <option value="Plat únic">Plat únic</option>
+          <option value="Esmorzar">Esmorzar</option>
+          <option value="Berenar">Berenar</option>
+        </select>
+        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
         <span id="newIconPreview" class="iconPreview"></span>
         <input type="hidden" id="newIconValue">
-        <div class="row">
-          <button id="addBtn" class="btnPrimary">Afegir</button>
-          <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
-        </div>
+        <button id="addBtn" class="btnPrimary">Afegir</button>
+        <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
       </div>
     </div>
   <div id="overlay" class="overlay">

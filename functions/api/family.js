@@ -40,6 +40,34 @@ async function authenticate(request, env) {
   return { ok: true, family_id: verification.payload.family_id, role: verification.payload.role };
 }
 
+/**
+ * Verifica si un código ya existe en otra familia
+ * Lo hace hasheando el código con cada salt existente en la BD
+ */
+async function codeAlreadyExists(newCode, env, excludeFamilyId = null) {
+  const codeStr = String(newCode);
+  
+  // Obtener todos los hashes y salts existentes
+  const allFamilies = await env.DB
+    .prepare("SELECT id, code_hash, code_salt FROM families")
+    .all();
+  
+  // Para cada familia existente, hashear el nuevo código con su salt y comparar
+  for (const family of (allFamilies.results || [])) {
+    // Si hay familyId a excluir (al cambiar código), saltarla
+    if (excludeFamilyId && family.id === excludeFamilyId) {
+      continue;
+    }
+    
+    const testHash = await hashCode(codeStr, family.code_salt);
+    if (testHash === family.code_hash) {
+      return true; // El código ya existe
+    }
+  }
+  
+  return false; // El código no existe
+}
+
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -243,6 +271,12 @@ export async function onRequestPost({ request, env }) {
 
         console.log("Creating family. Code:", code);
 
+        // Verificar que el código no exista ya
+        const exists = await codeAlreadyExists(code, env);
+        if (exists) {
+          return json({ ok: false, error: "Code already in use by another family" }, 400);
+        }
+
         // Generar salt aleatorio
         let codeSalt;
         try {
@@ -314,6 +348,23 @@ export async function onRequestPost({ request, env }) {
         return json({ ok: false, error: "Code must be at least 4 digits" }, 400);
       }
 
+      // Obtener el nombre actual de la familia
+      const currentFamily = await env.DB
+        .prepare("SELECT name FROM families WHERE id = ?1")
+        .bind(auth.family_id)
+        .first();
+
+      // Validar que el código no sea igual al nombre de la familia
+      if (currentFamily && String(newCode).toLowerCase() === String(currentFamily.name).toLowerCase()) {
+        return json({ ok: false, error: "Code cannot be the same as family name" }, 400);
+      }
+
+      // Verificar que el código no exista ya en otra familia
+      const exists = await codeAlreadyExists(newCode, env, auth.family_id);
+      if (exists) {
+        return json({ ok: false, error: "Code already in use by another family" }, 400);
+      }
+
       // Generar salt aleatorio
       const codeSalt = generateSalt();
 
@@ -352,6 +403,23 @@ export async function onRequestPost({ request, env }) {
 
       if (String(newCode).length < 4) {
         return json({ ok: false, error: "Code must be at least 4 digits" }, 400);
+      }
+
+      // Obtener el nombre de la familia
+      const targetFamily = await env.DB
+        .prepare("SELECT name FROM families WHERE id = ?1")
+        .bind(target_family_id)
+        .first();
+
+      // Validar que el código no sea igual al nombre de la familia
+      if (targetFamily && String(newCode).toLowerCase() === String(targetFamily.name).toLowerCase()) {
+        return json({ ok: false, error: "Code cannot be the same as family name" }, 400);
+      }
+
+      // Verificar que el código no exista ya en otra familia
+      const exists = await codeAlreadyExists(newCode, env, target_family_id);
+      if (exists) {
+        return json({ ok: false, error: "Code already in use by another family" }, 400);
       }
 
       // Generar salt aleatorio
