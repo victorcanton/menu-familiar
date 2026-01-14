@@ -1600,14 +1600,14 @@
     justify-content: center;
     gap: 4px;
     width: auto;
-    min-width: 50px;
+    min-width: 120px;
     height: 50px;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
     border: 2px solid rgba(0,0,0,0.08);
     flex: 0 0 auto;
     flex-wrap: wrap;
-    padding: 0 8px;
+    padding: 0 12px;
   }
 
   .rhIcon .iconPreview .twSvg {
@@ -2167,10 +2167,17 @@
       const h2 = document.querySelector(".titleRow h2");
       if (!h2) return;
       
+      const prevBtn = document.getElementById("prevWeekBtn");
+      const nextBtn = document.getElementById("nextWeekBtn");
+      
       if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
         h2.textContent = "Menú diari";
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
       } else {
         h2.textContent = "Menú setmanal";
+        if (prevBtn) prevBtn.style.display = "";
+        if (nextBtn) nextBtn.style.display = "";
       }
     }
 
