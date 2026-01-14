@@ -60,6 +60,19 @@
     .inputWide{ min-width: 100%; }
   }
 
+  /* Orientation support - landscape/portrait adaptive */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .container {
+      padding: 12px;
+    }
+  }
+
+  @media (orientation: portrait) {
+    body {
+      /* Portrait: normal padding */
+    }
+  }
+
 
   .container{
     max-width: 1200px;
