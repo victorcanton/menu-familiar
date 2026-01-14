@@ -174,7 +174,9 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: true });
     } else if (action === "applyChanges") {
       // Apply multiple slot changes
+      console.log("applyChanges: received changes", JSON.stringify(changes));
       for (const change of changes || []) {
+        console.log("Processing change:", JSON.stringify(change));
         if (change.__delete) {
           // Delete the menu item
           // Parse slot_id (format: "YYYY-MM-DD_meal_course") to extract date, meal, course
@@ -220,14 +222,20 @@ export async function onRequestPost({ request, env }) {
             .prepare("SELECT id, recipe_id FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
             .bind(family_id, change.date, mealKey, pos)
             .first();
+          
+          console.log(`Looking for menu_item: family=${family_id}, date=${change.date}, meal=${mealKey}, pos=${pos}`);
+          console.log(`Existing menu_item: ${JSON.stringify(existing)}`);
 
           if (existing) {
             // If recipe_id is changing and it's a new recipe, increment its count
+            console.log(`Existing recipe_id: ${existing.recipe_id}, new recipe_id: ${change.recipe_id}`);
             if (change.recipe_id && change.recipe_id !== existing.recipe_id) {
-              await env.DB
+              console.log(`Incrementing count for recipe ${change.recipe_id}`);
+              const updateResult = await env.DB
                 .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
                 .bind(change.recipe_id, family_id)
                 .run();
+              console.log(`Update result: ${JSON.stringify(updateResult)}`);
             }
             
             await env.DB
@@ -236,16 +244,19 @@ export async function onRequestPost({ request, env }) {
               .run();
           } else if (change.recipe_id) {
             // Incrementar contador al crear nuevo item
-            await env.DB
-              .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
-              .bind(change.recipe_id, family_id)
-              .run();
+            console.log(`Creating new menu_item and incrementing count for recipe ${change.recipe_id}`);
             
             const itemId = generateId("mi");
             await env.DB
               .prepare("INSERT INTO menu_items (id, family_id, date, meal, position, recipe_id, label, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
               .bind(itemId, family_id, change.date, mealKey, pos, change.recipe_id, change.label || null, now, now)
               .run();
+            
+            const updateResult = await env.DB
+              .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+              .bind(change.recipe_id, family_id)
+              .run();
+            console.log(`Update count result: ${JSON.stringify(updateResult)}`);
           }
         }
       }
