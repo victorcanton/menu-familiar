@@ -4257,7 +4257,7 @@
               <div style="font-size: 14px;">Codi d'accés: <span id="generatedCode" style="font-family: monospace; font-weight: bold; font-size: 18px;"></span></div>
               <div style="font-size: 12px; margin-top: 8px; color: #666;">Els membres poden usar aquest codi para accedir a la familia.</div>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div id="buttonContainer" style="display: flex; gap: 10px;">
               <button id="createFamilyFormBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Crear</button>
               <button id="cancelCreateFamilyBtn" style="padding: 8px 16px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">Cancelar</button>
             </div>
@@ -4270,6 +4270,7 @@
       const createBtn = document.getElementById("createFamilyFormBtn");
       const cancelBtn = document.getElementById("cancelCreateFamilyBtn");
       const newFamilyName = document.getElementById("newFamilyName");
+      const buttonContainer = document.getElementById("buttonContainer");
       
       cancelBtn.addEventListener("click", () => {
         openAdminModal();
@@ -4313,18 +4314,18 @@
           generatedCode.textContent = data.family.code;
           createdCodeDisplay.style.display = "block";
           
-          // Cambiar botón a volver
-          createBtn.textContent = "Tornar a la llista";
-          createBtn.style.background = "#2196F3";
-          createBtn.disabled = false;
+          // Reemplazar los botones con uno nuevo "Tornar a la llista"
+          buttonContainer.innerHTML = `
+            <button id="returnToListBtn" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Tornar a la llista</button>
+          `;
           
-          createBtn.addEventListener("click", () => {
+          const returnBtn = document.getElementById("returnToListBtn");
+          returnBtn.addEventListener("click", () => {
             openAdminModal();
           });
           
           newFamilyName.disabled = true;
           document.getElementById("newFamilyDisplayName").disabled = true;
-          cancelBtn.style.display = "none";
           
         } catch (err) {
           alert("Error de conexió: " + err.message);
