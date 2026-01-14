@@ -2195,13 +2195,9 @@
             </div>
 
             <div class="noteActions">
-              <button id="saveNoteBtn" type="button" class="btnGhost">Guardar comentari</button>
-              <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda per eliminar-lo.</span>
+              <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda automàticament.</span>
             </div>
           </div>
-        </div>
-        <div style="padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,0.08);">
-          <button id="toggleNoteBtn" type="button" class="btnGhost" style="font-size: 12px;">▸ Afegir/editar comentari</button>
         </div>
       `;
 
@@ -2319,17 +2315,17 @@
       const modalHeader = document.getElementById("overlay").querySelector(".modalHeader");
       const mealLabel = MEALS.find(x=>x.key===mealKey)?.label || mealKey;
       modalHeader.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; height: 40px;">
           <div>
-            <div class="modalTitle">Editar ${mealLabel} • ${date}</div>
+            <div class="modalTitle">Editar ${mealLabel} • <span style="font-weight: 500; opacity: 0.8;">${date}</span></div>
           </div>
-          <div class="pickerSearch" style="flex: 1; margin-left: auto;">
+          <div class="pickerSearch" style="flex: 1; margin-left: auto; height: 100%; display: flex; align-items: center;">
             <span class="muted">🔎</span>
             <input id="modalSearch" placeholder="Cerca plats..." autocomplete="off">
           </div>
-          <button id="toggleNoteHeaderBtn" type="button" class="btnGhost" style="font-size: 12px; flex: 0 0 auto;" title="Mostra/amaga comentari">▸ Comentari</button>
+          <button id="toggleNoteHeaderBtn" type="button" class="btnGhost" style="font-size: 12px; flex: 0 0 auto; height: 100%;" title="Mostra/amaga comentari">▸ Comentari</button>
         </div>
-        <button id="closeBtn">Tancar</button>
+        <button id="closeBtn" style="height: 40px; align-self: center;">Tancar</button>
       `;
 
       modalBody.innerHTML = noteBlock + pickerCols;
