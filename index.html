@@ -1162,10 +1162,10 @@
     grid-row: 1 / 3;
   }
 
-  /* Fix icon picker to fit in grid cell - 3 ROWS x 8 COLUMNS */
+  /* Fix icon picker to fit in grid cell - 2 ROWS x 5 COLUMNS */
   .rhIcon .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 4px;
     padding: 4px;
     background: rgba(255,255,255,0.85);
@@ -1222,17 +1222,21 @@
     height: 28px;
   }
 
+  .rhIcon:has(.iconPreview:empty) {
+    display: none;
+  }
+
   /* Visual Icon Picker - for adding recipes */
   .iconPickerGrid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     padding: 8px;
     background: rgba(255,255,255,0.85);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 12px;
     margin-bottom: 8px;
-    max-width: 350px;
+    max-width: 300px;
   }
   .rhIcon .iconPreview {
     display: flex;
@@ -1392,62 +1396,35 @@
 
 
     const TWEMOJI_MAP = {
-      soup:     "1f372",
-      salad:    "1f957",
-      pasta:    "1f35d",
-      rice:     "1f35a",
-      pizza:    "1f355",
-      egg:      "1f373", // 🍳 (si el vols mantenir)
-      egg2:     "1f95a", // 🥚 (OU SENCER)  <-- AFEGIT
-      fish:     "1f41f",
-      chicken:  "1f357",
-      sandwich: "1f96a",
-      stew:     "1f372",
-      burger:   "1f354",
-      taco:     "1f32e",
-      sushi:    "1f363",
-      dessert:  "1f370",
-      fruit:    "1f34e",
-      plate:    "1f37d",
-      coffee:   "2615",   // opcional: ☕ per esmorzar
-      eggplant: "1f346", // 🍆 albergínia
-      broccoli: "1f966", // 🥦 verdura
-      potato:   "1f954",  // 🥔 patata
-      cream:    "1f375"  // 🍵  ← AFEGIT (cremes)
+      meat:      "1f356",  // 🍖 Carn
+      fish:      "1f41f",  // 🐟 Peix
+      egg:       "1f95a",  // 🥚 Ous
+      beans:     "1f335",  // 🌵 Llegums (placeholder, usar 1faa8 si disponible para faves)
+      vegetable: "1f966",  // 🥦 Verdura
+      fruit:     "1f34e",  // 🍎 Fruita
+      pasta:     "1f35d",  // 🍝 Pasta
+      rice:      "1f35a",  // 🍚 Arròs
+      potato:    "1f954",  // 🥔 Patates
+      dairy:     "1f9c0"   // 🧀 Làctics
     };
 
     const ICON_LABELS = {
-      auto: "Auto",
-      soup: "Sopa",
-      cream: "Crema",
-      eggplant: "Albergínia",
-      broccoli: "Verdura",
-      potato: "Patata",
-      salad: "Amanida",
-      pasta: "Pasta",
-      rice: "Arròs",
-      pizza: "Pizza",
-      egg: "Truita",
-      egg2:"Ou",
-      fish: "Peix",
-      chicken: "Pollastre",
-      sandwich: "Entrepà",
-      stew: "Estofat",
-      burger: "Hamburguesa",
-      taco: "Taco",
-      sushi: "Sushi",
-      dessert: "Postre",
-      fruit: "Fruita",
-      plate: "Plat",
-      coffee: "Cafè"
+      meat:      "Carn",
+      fish:      "Peix",
+      egg:       "Ous",
+      beans:     "Llegums",
+      vegetable: "Verdura",
+      fruit:     "Fruita",
+      pasta:     "Pasta",
+      rice:      "Arròs",
+      potato:    "Patates",
+      dairy:     "Làctics"
     };
 
     // L’ordre com vols que surtin al desplegable
     const ICON_KEYS = [
-      "auto",
-      "soup","cream","salad","eggplant","broccoli","potato","pasta","rice","pizza","egg","egg2","fish","chicken","sandwich","stew",
-      "burger","taco","sushi","dessert","fruit","plate",
-      "coffee"
+      "meat", "fish", "egg", "beans", "vegetable",
+      "fruit", "pasta", "rice", "potato", "dairy"
     ];
 
 
@@ -1455,7 +1432,7 @@
 
     function twCodeForKey(key){
       const k = String(key || "").trim();
-      return TWEMOJI_MAP[k] || TWEMOJI_MAP.plate;
+      return TWEMOJI_MAP[k] || TWEMOJI_MAP.fruit;
     }
 
     // Sanititza amb DOMParser    
@@ -2953,11 +2930,11 @@
 //   }
 // });
 
-    function fillIconPickerForAdd(pickerEl, { includeAuto = true } = {}) {
+    function fillIconPickerForAdd(pickerEl) {
       if (!pickerEl) return;
 
       pickerEl.innerHTML = "";
-      const keys = includeAuto ? ICON_KEYS : ICON_KEYS.filter(k => k !== "auto");
+      const keys = ICON_KEYS;
 
       for (const key of keys) {
         const btn = document.createElement("button");
@@ -2993,11 +2970,11 @@
       }
     }
 
-    function fillIconPicker(pickerEl, { includeAuto = true } = {}) {
+    function fillIconPicker(pickerEl) {
       if (!pickerEl) return;
 
       pickerEl.innerHTML = "";
-      const keys = includeAuto ? ICON_KEYS : ICON_KEYS.filter(k => k !== "auto");
+      const keys = ICON_KEYS;
 
       for (const key of keys) {
         const btn = document.createElement("button");
@@ -3088,24 +3065,24 @@
       // New recipe icon picker
       const newPickerEl = document.getElementById("newIconPicker");
       if (newPickerEl) {
-        fillIconPickerForAdd(newPickerEl, { includeAuto: true });
+        fillIconPickerForAdd(newPickerEl);
       }
 
       // Recipe editor icon picker
       const recipePickerEl = document.getElementById("rIconPicker");
       if (recipePickerEl) {
-        fillIconPicker(recipePickerEl, { includeAuto: true });
+        fillIconPicker(recipePickerEl);
       }
     }
 
     function selectIconInPicker(pickerEl, iconKey) {
-      if (!pickerEl) return;
+      if (!pickerEl || !iconKey) return;
       
       // Clear previous selection
       pickerEl.querySelectorAll(".iconPickerBtn").forEach(b => b.classList.remove("selected"));
       
       // Find and select the button with this key
-      const btn = pickerEl.querySelector(`[data-icon-key="${iconKey || "auto"}"]`);
+      const btn = pickerEl.querySelector(`[data-icon-key="${iconKey}"]`);
       if (btn) {
         btn.classList.add("selected");
       }
