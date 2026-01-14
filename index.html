@@ -2264,17 +2264,31 @@
             const rid = String(r.id);
             const isSel = rid === String(selectedId);
             const safeName = String(r.name||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            
+            // Renderizar iconos de ingredientes si existen
+            let iconHtml = "";
+            if (r.icons) {
+              try {
+                const iconKeys = JSON.parse(r.icons);
+                if (Array.isArray(iconKeys) && iconKeys.length > 0) {
+                  iconHtml = iconKeys.map(key => twemojiSvgIcon(key)).join("");
+                }
+              } catch (e) {
+                // ignorar si hay error al parsear JSON
+              }
+            }
+            
             return `
               <button class="rCard ${isSel ? "selected":""}"
                 data-course="${course}"
                 data-rid="${rid}"
                 data-name="${norm_(r.name)}"
                 onclick="onPick('${date}','${mealKey}','${course}','${rid}')">
-                <div class="rIcon">${twemojiSvgIcon(recipeIconKey(r))}</div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="display:flex; flex-direction:column; gap:2px; flex: 1;">
                   <div class="rName">${safeName}</div>
                   <div class="rMeta">${(r.count||0)} usos</div>
                 </div>
+                ${iconHtml ? `<div style="display:flex; gap:4px; align-items:center; flex: 0 0 auto;">${iconHtml}</div>` : ""}
               </button>
             `;
           }).join("");
