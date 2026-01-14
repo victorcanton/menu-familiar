@@ -2899,6 +2899,7 @@
             </div>
 
             <div class="noteActions">
+              <button id="saveNoteBtn" type="button" class="btn" style="padding: 6px 12px; font-size: 12px;">Comentari</button>
               <span class="muted" style="font-size:12px;">Deixa-ho buit i guarda automàticament.</span>
             </div>
           </div>
@@ -3022,6 +3023,7 @@
 
       const noteBox = document.getElementById("noteBox");
       const clearBtn = document.getElementById("clearNoteBtn");
+      const saveBtn = document.getElementById("saveNoteBtn");
 
       function syncClearBtn(){
         const hasText = (noteBox.value || "").trim().length > 0;
@@ -3042,6 +3044,26 @@
 
         noteBox.addEventListener("input", syncClearBtn);
         syncClearBtn();
+      }
+
+      // Save note button
+      if (saveBtn && noteBox) {
+        saveBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const note = noteBox.value || "";
+          try {
+            const res = await gasp("api_setNote", { date, meal: mealKey, note });
+            if (res && res.ok !== false) {
+              toast("success", "Comentari guardat", "");
+              // Recarregar el board perquè reflectisca la nota
+              renderBoardForDisplay();
+            } else {
+              toast("error", "Error", res?.error || "No s'ha pogut guardar el comentari");
+            }
+          } catch (e) {
+            toast("error", "Error", e.message);
+          }
+        });
       }
 
 

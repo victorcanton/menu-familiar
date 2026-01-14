@@ -217,16 +217,30 @@ export async function onRequestPost({ request, env }) {
 
           // Check if menu item exists
           const existing = await env.DB
-            .prepare("SELECT id FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
+            .prepare("SELECT id, recipe_id FROM menu_items WHERE family_id = ?1 AND date = ?2 AND meal = ?3 AND position = ?4")
             .bind(family_id, change.date, mealKey, pos)
             .first();
 
           if (existing) {
+            // If recipe_id is changing and it's a new recipe, increment its count
+            if (change.recipe_id && change.recipe_id !== existing.recipe_id) {
+              await env.DB
+                .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+                .bind(change.recipe_id, family_id)
+                .run();
+            }
+            
             await env.DB
               .prepare("UPDATE menu_items SET recipe_id = ?1, label = ?2, updated_at = ?3 WHERE id = ?4 AND family_id = ?5")
               .bind(change.recipe_id || null, change.label || null, now, existing.id, family_id)
               .run();
           } else if (change.recipe_id) {
+            // Incrementar contador al crear nuevo item
+            await env.DB
+              .prepare("UPDATE recipes SET count = count + 1 WHERE id = ?1 AND family_id = ?2")
+              .bind(change.recipe_id, family_id)
+              .run();
+            
             const itemId = generateId("mi");
             await env.DB
               .prepare("INSERT INTO menu_items (id, family_id, date, meal, position, recipe_id, label, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
