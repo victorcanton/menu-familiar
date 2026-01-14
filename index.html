@@ -2095,13 +2095,7 @@
                 iconKeys = [r.icon];
               }
               
-              if (iconKeys.length === 0) {
-                iconKeys = [recipeIconKey(r)];
-              }
-              
               icons = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
-            } else {
-              icons = `<span class="iconItem">${twemojiSvgIcon("plate")}</span>`;
             }
 
             const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
