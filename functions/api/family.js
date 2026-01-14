@@ -208,49 +208,75 @@ export async function onRequestPost({ request, env }) {
         return json({ ok: false, error: "Family name cannot be empty" }, 400);
       }
 
-      // Generar código aleatorio (4 dígitos)
-      const code = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-      const last4 = code.slice(-4);
+      try {
+        // Generar código aleatorio (4 dígitos)
+        const code = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+        const last4 = code.slice(-4);
 
-      // Generar salt aleatorio
-      const codeSalt = generateSalt();
+        console.log("Creating family. Code:", code);
 
-      // Hashear el código
-      const codeHash = await hashCode(code, codeSalt);
+        // Generar salt aleatorio
+        let codeSalt;
+        try {
+          codeSalt = generateSalt();
+          console.log("Salt generated, length:", codeSalt.length);
+        } catch (e) {
+          console.error("Error generating salt:", e);
+          throw e;
+        }
 
-      // Generar ID único para la familia (formato fam_xxxxx)
-      const familyId = `fam_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const now = new Date().toISOString();
+        // Hashear el código
+        let codeHash;
+        try {
+          codeHash = await hashCode(code, codeSalt);
+          console.log("Hash generated, length:", codeHash.length);
+        } catch (e) {
+          console.error("Error hashing code:", e);
+          throw e;
+        }
 
-      // Insertar nueva familia
-      await env.DB
-        .prepare(`
-          INSERT INTO families (id, name, display_name, code_hash, code_salt, code_last4, role, created_at, updated_at)
-          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
-        `)
-        .bind(
-          familyId,
-          cleanName,
-          family_display_name || cleanName,
-          codeHash,
-          codeSalt,
-          last4,
-          "member", // Nueva familia es member por defecto
-          now,
-          now
-        )
-        .run();
+        // Generar ID único para la familia (formato fam_xxxxx)
+        const familyId = `fam_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const now = new Date().toISOString();
+        const displayName = family_display_name || cleanName;
 
-      return json({ 
-        ok: true, 
-        family: { 
-          id: familyId, 
-          name: cleanName, 
-          display_name: family_display_name || cleanName,
-          code: code,
-          code_last4: last4
-        } 
-      });
+        console.log("About to insert:", { familyId, cleanName, displayName, last4 });
+
+        // Insertar nueva familia
+        const result = await env.DB
+          .prepare(`
+            INSERT INTO families (id, name, display_name, code_hash, code_salt, code_last4, role, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+          `)
+          .bind(
+            familyId,
+            cleanName,
+            displayName,
+            codeHash,
+            codeSalt,
+            last4,
+            "member",
+            now,
+            now
+          )
+          .run();
+
+        console.log("Insert result:", result);
+
+        return json({ 
+          ok: true, 
+          family: { 
+            id: familyId, 
+            name: cleanName, 
+            display_name: displayName,
+            code: code,
+            code_last4: last4
+          } 
+        });
+      } catch (dbError) {
+        console.error("Database error in createFamily:", dbError);
+        throw dbError;
+      }
     }
 
     // Usuario: Cambiar su propio código
