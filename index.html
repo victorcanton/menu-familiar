@@ -58,6 +58,10 @@
     overflow-x: visible;
   }
 
+  .container.not-authenticated > :not(.topbar) {
+    display: none;
+  }
+
 
   h2,h3{
     margin: 0;
@@ -3250,6 +3254,7 @@
       const inputEl  = document.getElementById("familyCodeInput");
       const loginBtn = document.getElementById("loginBtn");
       const logoutBtn = document.getElementById("logoutBtn");
+      const container = document.querySelector(".container");
   
       const logged = !!token && !!family;
   
@@ -3258,11 +3263,13 @@
         inputEl.style.display = "none";
         loginBtn.style.display = "none";
         logoutBtn.style.display = "inline-block";
+        container?.classList.remove("not-authenticated");
       } else {
         statusEl.textContent = "No autenticat";
         inputEl.style.display = "inline-block";
         loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
+        container?.classList.add("not-authenticated");
       }
     }
   
