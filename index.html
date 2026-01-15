@@ -1589,7 +1589,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 4px;
-    width: 84px;
+    width: 80px;
     height: 32px;
     line-height: 1;
     border-radius: 12px;
@@ -1623,7 +1623,9 @@
   }
 
   .panel .recipeForm1,
-  .panel .recipeForm2 {
+  .panel .recipeForm2,
+  .panel .form-row-1,
+  .panel .form-row-2 {
     display: contents;
   }
 
@@ -1662,17 +1664,18 @@
   .panel.daily-mode .form-row-2 {
     display: flex;
     gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .panel.daily-mode .form-row-2 .iconPickerGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 4px;
     padding: 4px;
     max-width: 100%;
     width: auto;
+    height: auto;
     margin: 0;
+    flex: 1;
   }
 
   .panel.daily-mode .form-row-2 .iconPickerGrid button {
@@ -1682,9 +1685,10 @@
   }
 
   .panel.daily-mode .form-row-2 #newIconPreview {
-    width: auto;
+    width: 80px;
     height: 32px;
     flex-shrink: 0;
+    margin-top: 0;
   }
 
   .panel.daily-mode .recipeForm2 {
@@ -1702,11 +1706,13 @@
     flex: 1 0 auto;
   }
 
-  .panel.daily-mode #newIconPreview {
-    width: 84px;
-    max-width: 84px;
-    height: 32px;
+  .panel.daily-mode #newIconPreview .twSvg {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
   }
+
 
   .panel.daily-mode #newIconPreview .twSvg {
     width: 20px;
