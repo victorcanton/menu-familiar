@@ -1374,8 +1374,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     transition: all 120ms ease;
+    min-height: 40px;
+  }
+
+  .panel.daily-mode .iconPickerBtn {
+    font-size: 18px;
+    min-height: 36px;
   }
 
   .iconPickerBtn:hover {
@@ -1583,8 +1589,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 4px;
-    width: 90px;
-    height: 36px;
+    width: 84px;
+    height: 32px;
     line-height: 1;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
@@ -1604,18 +1610,8 @@
     flex-shrink: 0;
   }
 
-  .panel.daily-mode #newIconPreview {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    min-height: 36px;
-  }
-
-  .panel.daily-mode #newIconPreview .twSvg {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    min-height: 22px;
+  .panel:not(.daily-mode) #newIconPicker {
+    max-width: 300px;
   }
 
   /* Layout para Menú Setmanal - una sola línea */
@@ -1647,29 +1643,48 @@
     align-items: stretch;
   }
 
-  .panel.daily-mode .recipeForm1 input[type="text"],
-  .panel.daily-mode .recipeForm1 select {
-    width: 100%;
+  .panel.daily-mode .form-row-1 {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
 
-  .panel.daily-mode .recipeForm1 .iconPickerGrid {
+  .panel.daily-mode .form-row-1 input[type="text"] {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .panel.daily-mode .form-row-1 select {
+    flex: 0 1 120px;
+    min-width: 100px;
+  }
+
+  .panel.daily-mode .form-row-2 {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .panel.daily-mode .form-row-2 .iconPickerGrid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 6px;
+    gap: 4px;
+    padding: 4px;
     max-width: 100%;
-    width: 100%;
+    width: auto;
     margin: 0;
   }
 
-  .panel.daily-mode .recipeForm1 .iconPickerGrid button {
-    min-width: 32px;
-    min-height: 32px;
+  .panel.daily-mode .form-row-2 .iconPickerGrid button {
+    min-width: 36px;
+    min-height: 36px;
     padding: 4px;
   }
 
-  .panel.daily-mode .recipeForm1 .iconPreview {
-    width: 100%;
-    justify-content: flex-start;
+  .panel.daily-mode .form-row-2 #newIconPreview {
+    width: auto;
+    height: 32px;
+    flex-shrink: 0;
   }
 
   .panel.daily-mode .recipeForm2 {
@@ -1685,6 +1700,19 @@
     min-height: 44px;
     font-size: 14px;
     flex: 1 0 auto;
+  }
+
+  .panel.daily-mode #newIconPreview {
+    width: 84px;
+    max-width: 84px;
+    height: 32px;
+  }
+
+  .panel.daily-mode #newIconPreview .twSvg {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
   }
   </style>
 
@@ -1740,17 +1768,21 @@
     <div class="panel" id="addRecipePanel">
       <div class="row">
         <div class="recipeForm1">
-          <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-          <select id="newCat">
-            <option value="Primer">Primer</option>
-            <option value="Segon">Segon</option>
-            <option value="Plat únic">Plat únic</option>
-            <option value="Esmorzar">Esmorzar</option>
-            <option value="Berenar">Berenar</option>
-          </select>
-          <div id="newIconPicker" class="iconPickerGrid"></div>
-          <span id="newIconPreview" class="iconPreview"></span>
-          <input type="hidden" id="newIconValue">
+          <div class="form-row-1">
+            <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
+            <select id="newCat">
+              <option value="Primer">Primer</option>
+              <option value="Segon">Segon</option>
+              <option value="Plat únic">Plat únic</option>
+              <option value="Esmorzar">Esmorzar</option>
+              <option value="Berenar">Berenar</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div id="newIconPicker" class="iconPickerGrid"></div>
+            <span id="newIconPreview" class="iconPreview"></span>
+            <input type="hidden" id="newIconValue">
+          </div>
         </div>
         <div class="recipeForm2">
           <button id="addBtn" class="btnPrimary">Afegir</button>
