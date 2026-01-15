@@ -4802,6 +4802,26 @@
   
       setAuth(data.token, data.family);
       renderAuthState();
+      
+      // Load data after successful login
+      showLoading();
+      try {
+        await loadRecipesOnce();
+        await loadWeekData();
+        renderBoardForDisplay();
+        updateTitleForMode();
+        updateDateLabelForMode();
+        
+        const todayISO = iso(new Date());
+        const dates = buildDates(WEEK_START_ISO);
+        scrollToDateOnMobile(dates.includes(todayISO) ? todayISO : WEEK_START_ISO);
+        syncMealHeights();
+      } catch (e) {
+        console.error("Error loading data after login:", e);
+        toast("error", "Error", "No s'han pogut carregar les dades");
+      } finally {
+        hideLoading();
+      }
     }
   
     function doLogout() {
