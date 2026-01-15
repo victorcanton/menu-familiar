@@ -658,8 +658,22 @@
     border-radius: 14px;
     border: 1px solid rgba(0,0,0,0.06);
     background: rgba(255,255,255,0.55);
-    padding: 8px 32px 8px 8px;
+    padding: 8px 8px 8px 8px;
     transition: background .12s ease, transform .12s ease;
+  }
+
+  /* Touchscreen devices: more left padding for easier touch interaction */
+  @media (hover: none) and (pointer: coarse) {
+    .mealBody {
+      padding: 8px 8px 8px 64px;
+    }
+  }
+
+  /* Non-touch devices (mouse/trackpad): standard padding */
+  @media (hover: hover) and (pointer: fine) {
+    .mealBody {
+      padding: 8px 8px 8px 8px;
+    }
   }
 
   .mealBody:hover{
