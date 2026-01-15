@@ -355,36 +355,27 @@
     }
   } */
 
-  /* --- Tablet: Keep weekly view but with responsive adjustments (500px - 980px) --- */
-  @media (max-width: 980px) and (min-width: 501px) {
-    /* Menys padding general */
+  /* --- DISABLED: Tablet weekly view - Now all screens <=980px use daily view --- */
+  /* @media (max-width: 980px) and (min-width: 501px) {
     .container{ padding: 12px; }
-
-    /* Topbar més compacta */
     .topbar h2{ font-size: 18px; }
     button, input, select, textarea{ padding: 8px 10px; font-size: 14px; }
     .actions{ width: 100%; justify-content: flex-end; }
-
-    /* Weekly view still visible but scaled down */
     .weekCols {
       grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
       gap: 8px;
     }
-
     .topbar{
       gap: 8px;
     }
-
     .weekControlsTop{
       flex: 1 1 auto;
     }
-
     .gcNavBtn{
       width: 36px;
       height: 36px;
       flex-shrink: 0;
     }
-
     .weekPill{
       padding: 6px 8px;
       font-size: 12px;
@@ -393,13 +384,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     .weekControls {
       flex-wrap: wrap;
       justify-content: center;
       gap: 6px;
     }
-  }
+  } */
 
 .topbar h2{
   font-size: 20px;     /* prova 19–22 segons gust */
@@ -849,8 +839,8 @@
     }
   }
 
-  /* --- Daily view: Very narrow screens (<500px) --- */
-  @media (max-width: 500px) {
+  /* --- Daily view: Screens without enough space for 7-column weekly view (<=980px) --- */
+  @media (max-width: 980px) {
     .topbar h2 {
       font-size: 24px;
       font-weight: 700;
@@ -2206,7 +2196,12 @@
     let PRELOADED_DATES = new Set();  // For smooth swipe navigation
 
     function isDailyViewMode() {
-      return window.matchMedia("(max-width: 500px)").matches;
+      // Force daily view if:
+      // 1. Screen width is very small (mobile portrait)
+      // 2. Screen doesn't have enough space for 7-column weekly view
+      //    (7 columns × 130px min + gaps ~80px = ~980px minimum)
+      const windowWidth = window.innerWidth;
+      return windowWidth <= 980;
     }
 
     function updateTitleForMode() {
