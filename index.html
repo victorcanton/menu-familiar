@@ -1343,6 +1343,11 @@
     margin-bottom: 8px;
     max-width: 350px;
   }
+
+  .panel:not(.daily-mode) #newIconPicker {
+    max-width: 300px;
+  }
+  
   .rhIcon .iconPreview {
     display: flex;
     align-items: center;
@@ -1577,9 +1582,9 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 6px;
-    width: 104px;
-    height: 40px;
+    gap: 4px;
+    width: 90px;
+    height: 36px;
     line-height: 1;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
@@ -1592,11 +1597,25 @@
   }
 
   #newIconPreview.iconPreview .twSvg {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    min-height: 24px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
     flex-shrink: 0;
+  }
+
+  .panel.daily-mode #newIconPreview {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 36px;
+  }
+
+  .panel.daily-mode #newIconPreview .twSvg {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
   }
 
   /* Layout para Menú Setmanal - una sola línea */
@@ -1612,32 +1631,60 @@
     display: contents;
   }
 
-  /* Layout para Menú Diari - dos filas */
+  /* Layout para Menú Diari - dos columnas */
   .panel.daily-mode .row {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto;
     gap: 10px;
+    align-items: start;
   }
 
-  .panel.daily-mode .recipeForm1,
-  .panel.daily-mode .recipeForm2 {
+  .panel.daily-mode .recipeForm1 {
+    grid-column: 1;
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .panel.daily-mode .recipeForm1 input[type="text"],
+  .panel.daily-mode .recipeForm1 select {
+    width: 100%;
+  }
+
+  .panel.daily-mode .recipeForm1 .iconPickerGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 6px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+
+  .panel.daily-mode .recipeForm1 .iconPickerGrid button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+  }
+
+  .panel.daily-mode .recipeForm1 .iconPreview {
+    width: 100%;
     justify-content: flex-start;
   }
 
-  .panel.daily-mode .recipeForm1 input,
-  .panel.daily-mode .recipeForm1 select,
-  .panel.daily-mode .recipeForm1 button.btnPrimary {
-    flex: 1 1 100px;
-    min-width: 80px;
+  .panel.daily-mode .recipeForm2 {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
   }
 
-  .panel.daily-mode .recipeForm2 > * {
-    flex: 0 0 auto;
+  .panel.daily-mode .recipeForm2 button {
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 14px;
+    flex: 1 0 auto;
   }
   </style>
 
@@ -1701,12 +1748,12 @@
             <option value="Esmorzar">Esmorzar</option>
             <option value="Berenar">Berenar</option>
           </select>
-          <button id="addBtn" class="btnPrimary">Afegir</button>
-        </div>
-        <div class="recipeForm2">
-          <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
+          <div id="newIconPicker" class="iconPickerGrid"></div>
           <span id="newIconPreview" class="iconPreview"></span>
           <input type="hidden" id="newIconValue">
+        </div>
+        <div class="recipeForm2">
+          <button id="addBtn" class="btnPrimary">Afegir</button>
           <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
         </div>
       </div>
