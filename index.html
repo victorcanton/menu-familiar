@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content,orientation=portrait" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -4950,6 +4950,22 @@
           });
       });
     }
+
+    // Force landscape orientation
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(err => {
+        console.log('Could not lock orientation to landscape:', err);
+      });
+    }
+    
+    // Ensure landscape is locked on orientation change
+    screen.addEventListener('orientationchange', () => {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => {
+          console.log('Could not lock orientation to landscape:', err);
+        });
+      }
+    });
 
     // Handle orientation changes: re-render board when switching between daily/weekly view
     window.addEventListener('resize', () => {
