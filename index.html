@@ -1580,6 +1580,7 @@
     gap: 6px;
     width: 104px;
     height: 40px;
+    line-height: 1;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
     border: 2px solid rgba(0,0,0,0.08);
@@ -1587,12 +1588,56 @@
     flex-wrap: nowrap;
     flex-shrink: 0;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   #newIconPreview.iconPreview .twSvg {
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     flex-shrink: 0;
+  }
+
+  /* Layout para Menú Setmanal - una sola línea */
+  .panel .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .panel .recipeForm1,
+  .panel .recipeForm2 {
+    display: contents;
+  }
+
+  /* Layout para Menú Diari - dos filas */
+  .panel.daily-mode .row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .panel.daily-mode .recipeForm1,
+  .panel.daily-mode .recipeForm2 {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .panel.daily-mode .recipeForm1 input,
+  .panel.daily-mode .recipeForm1 select,
+  .panel.daily-mode .recipeForm1 button.btnPrimary {
+    flex: 1 1 100px;
+    min-width: 80px;
+  }
+
+  .panel.daily-mode .recipeForm2 > * {
+    flex: 0 0 auto;
   }
   </style>
 
@@ -1645,21 +1690,25 @@
 
     <h3>Afegir recepta</h3>
 
-    <div class="panel">
+    <div class="panel" id="addRecipePanel">
       <div class="row">
-        <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
-        <select id="newCat">
-          <option value="Primer">Primer</option>
-          <option value="Segon">Segon</option>
-          <option value="Plat únic">Plat únic</option>
-          <option value="Esmorzar">Esmorzar</option>
-          <option value="Berenar">Berenar</option>
-        </select>
-        <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
-        <span id="newIconPreview" class="iconPreview"></span>
-        <input type="hidden" id="newIconValue">
-        <button id="addBtn" class="btnPrimary">Afegir</button>
-        <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
+        <div class="recipeForm1">
+          <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
+          <select id="newCat">
+            <option value="Primer">Primer</option>
+            <option value="Segon">Segon</option>
+            <option value="Plat únic">Plat únic</option>
+            <option value="Esmorzar">Esmorzar</option>
+            <option value="Berenar">Berenar</option>
+          </select>
+          <button id="addBtn" class="btnPrimary">Afegir</button>
+        </div>
+        <div class="recipeForm2">
+          <div id="newIconPicker" class="iconPickerGrid" style="max-width: 300px;"></div>
+          <span id="newIconPreview" class="iconPreview"></span>
+          <input type="hidden" id="newIconValue">
+          <button id="manageRecipesBtn" class="btnGhost">Gestionar receptes</button>
+        </div>
       </div>
     </div>
   <div id="overlay" class="overlay">
@@ -2145,6 +2194,17 @@
       }
     }
 
+    function updateRecipePanelForMode() {
+      const panel = document.getElementById("addRecipePanel");
+      if (!panel) return;
+      
+      if (isDailyViewMode()) {
+        panel.classList.add("daily-mode");
+      } else {
+        panel.classList.remove("daily-mode");
+      }
+    }
+
     function updateDateLabelForMode() {
       const weekLabel = document.getElementById("weekLabel");
       if (!weekLabel) return;
@@ -2157,10 +2217,15 @@
       }
     }
 
-    function navigateToDate(dateISO) {
-      CURRENT_DISPLAY_DATE = dateISO;
+    function updateUIForMode() {
       updateTitleForMode();
       updateDateLabelForMode();
+      updateRecipePanelForMode();
+    }
+
+    function navigateToDate(dateISO) {
+      CURRENT_DISPLAY_DATE = dateISO;
+      updateUIForMode();
       renderBoardForDisplay();
     }
 
@@ -2565,8 +2630,7 @@
 
         await loadWeekData();
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
         
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -2651,8 +2715,7 @@
         
         console.log("Rendering board with WEEK_START_ISO:", WEEK_START_ISO);
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
         
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -3127,8 +3190,7 @@
 
         await loadWeekData();
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
 
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -3151,8 +3213,7 @@
 
         await loadWeekData();
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
 
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -3205,8 +3266,7 @@
       DIRTY_SLOTS = {};
       await loadWeekData();
       renderBoardForDisplay();
-      updateTitleForMode();
-      updateDateLabelForMode();
+      updateUIForMode();
       // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
       const todayISO = iso(new Date());
       const dates = buildDates(WEEK_START_ISO);
@@ -3479,8 +3539,7 @@
         renderRecipeList();
         // també refresquem el board perquè icones/nom reflecteixin immediatament
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
         // si la setmana carregada conté avui, hi anem; si no, al dilluns (primer dia de la setmana)
 
         setRecipeDirty(false);
@@ -4783,8 +4842,7 @@
         await loadRecipesOnce();
         await loadWeekData();
         renderBoardForDisplay();
-        updateTitleForMode();
-        updateDateLabelForMode();
+        updateUIForMode();
         
         const todayISO = iso(new Date());
         const dates = buildDates(WEEK_START_ISO);
@@ -4996,8 +5054,7 @@
     // Handle orientation changes: re-render board when switching between daily/weekly view
     window.addEventListener('resize', () => {
       renderBoardForDisplay();
-      updateTitleForMode();
-      updateDateLabelForMode();
+      updateUIForMode();
       syncMealHeights();
     });
   </script>
