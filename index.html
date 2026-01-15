@@ -3019,6 +3019,16 @@
               // Recarregar les dades i el board perquè reflectisca la nota
               await loadWeekData();
               renderBoardForDisplay();
+              
+              // Collapse the notes section after saving
+              const noteSection = document.getElementById("noteSection");
+              const toggleNoteHeaderBtn = document.getElementById("toggleNoteHeaderBtn");
+              if (noteSection) {
+                noteSection.style.display = "none";
+                if (toggleNoteHeaderBtn) {
+                  toggleNoteHeaderBtn.textContent = "▸ Comentari";
+                }
+              }
             } else {
               toast("error", "Error", res?.error || "No s'ha pogut guardar el comentari");
             }
