@@ -1670,18 +1670,18 @@
     align-items: flex-start;
   }
   .panel.daily-mode .form-row-2 .iconPickerGrid {
-    /* Show as 2 rows x 6 columns */
-    grid-template-columns: repeat(6, 1fr);
+    /* Show as 2 rows x 6 columns using fixed cell size so buttons don't stretch */
+    grid-template-columns: repeat(6, 36px);
+    grid-auto-rows: 36px;
     /* remove gaps between icon boxes and reduce inner padding so boxes sit tightly */
     gap: 0px;
     padding: 2px 2px;
-    max-width: 100%;
     width: auto;
     height: auto;
     margin: 0;
-    flex: 1;
+    justify-content: start;
     /* limit visible area to two rows and allow scrolling if more icons exist */
-    max-height: 92px;
+    max-height: 76px;
     overflow-y: auto;
   }
 
