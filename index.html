@@ -1592,8 +1592,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 4px;
-    width: 80px;
-    height: 32px;
+    width: 120px;
+    height: 40px;
     line-height: 1;
     border-radius: 12px;
     background: rgba(255,255,255,0.85);
@@ -1684,6 +1684,13 @@
     max-height: 76px;
     overflow-y: auto;
   }
+
+  /* Hide visual scrollbar in picker to avoid thin gray line on the right */
+  .panel.daily-mode .form-row-2 .iconPickerGrid {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .panel.daily-mode .form-row-2 .iconPickerGrid::-webkit-scrollbar { width: 0; height: 0; }
 
   .panel.daily-mode .form-row-2 .iconPickerGrid button {
     /* Use compact but consistent square buttons */
