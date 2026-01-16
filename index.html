@@ -1670,8 +1670,8 @@
     align-items: flex-start;
   }
   .panel.daily-mode .form-row-2 .iconPickerGrid {
-    /* Reduce visual width of each icon cell by doubling columns */
-    grid-template-columns: repeat(12, 1fr);
+    /* Show as 2 rows x 6 columns */
+    grid-template-columns: repeat(6, 1fr);
     gap: 4px;
     padding: 4px;
     max-width: 100%;
@@ -1679,14 +1679,18 @@
     height: auto;
     margin: 0;
     flex: 1;
+    /* limit visible area to two rows and allow scrolling if more icons exist */
+    max-height: 92px;
+    overflow-y: auto;
   }
 
   .panel.daily-mode .form-row-2 .iconPickerGrid button {
-    /* Halve the default min dimensions so boxes look half as wide */
-    min-width: 18px;
-    min-height: 18px;
-    padding: 2px;
-    font-size: 14px;
+    /* Use compact but consistent square buttons */
+    min-width: 36px;
+    min-height: 36px;
+    padding: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
   }
 
   .panel.daily-mode .form-row-2 #newIconPreview {
