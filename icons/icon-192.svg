@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" fill="#ffffff"/>
+  <rect width="192" height="192" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="96" y="110" font-size="48" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-weight="bold" text-anchor="middle" fill="#374151">M</text>
+  <text x="96" y="140" font-size="24" font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle" fill="#6b7280">Menú</text>
+</svg>
