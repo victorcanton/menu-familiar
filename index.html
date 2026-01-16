@@ -802,6 +802,7 @@
       border: none !important;
       background: transparent !important;
       box-shadow: none !important;
+      margin: 0 !important;
     }
 
     .weekCols {
@@ -815,9 +816,11 @@
       scroll-snap-type: x mandatory;
       width: 100vw !important;
       margin-left: calc(-50vw + 50%) !important;
-      padding: 0 !important;
-      padding-bottom: 0 !important;
+      margin-right: calc(-50vw + 50%) !important;
+      padding: 12px 20px !important;
+      padding-bottom: 12px !important;
       min-width: auto !important;
+      box-sizing: content-box !important;
       -webkit-overflow-scrolling: touch;
       
       /* Hide scrollbar - webkit browsers */
@@ -830,14 +833,14 @@
     }
 
     .dayCol {
-      /* 100vw - 40px padding (left + right) = visible day width */
-      flex: 0 0 calc(100vw - 40px) !important;
-      width: calc(100vw - 40px) !important;
+      /* 75vw = visible day + 25vw for adjacent day visibility */
+      flex: 0 0 75vw !important;
+      width: 75vw !important;
       height: auto !important;
       box-sizing: border-box !important;
       border-radius: 16px !important;
-      padding: 0 20px !important;
-      margin: 0 !important;
+      padding: 12px !important;
+      margin-right: 8px !important;
       scroll-snap-align: center;
       scroll-snap-stop: always;
       
@@ -861,11 +864,7 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
     }
 
-    /* First and last day padding for carousel effect */
-    .dayCol:first-child {
-      margin-left: 0 !important;
-    }
-
+    /* Remove extra margin from last item */
     .dayCol:last-child {
       margin-right: 0 !important;
     }
