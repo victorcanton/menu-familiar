@@ -849,10 +849,8 @@
       transform: scale(0.95);
       transition: opacity 0.3s ease, transform 0.3s ease;
       
-      /* Ensure vertical scroll works inside day */
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      max-height: calc(100vh - 200px) !important;
+      /* Content flows naturally, no forced scrolling */
+      overflow: visible !important;
       -webkit-overflow-scrolling: touch;
     }
 
