@@ -1693,6 +1693,19 @@
     box-sizing: border-box;
   }
 
+  /* Force fixed compact button boxes in daily mode to avoid stretching */
+  .panel.daily-mode .form-row-2 .iconPickerGrid .iconPickerBtn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    aspect-ratio: initial !important;
+    padding: 4px !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
   /* Reduce svg icon size inside the daily-mode picker to keep icons small */
   .panel.daily-mode .form-row-2 .iconPickerGrid .twSvg,
   .panel.daily-mode .form-row-2 .iconPickerGrid button .twSvg,
