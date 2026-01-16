@@ -1669,9 +1669,9 @@
     gap: 8px;
     align-items: flex-start;
   }
-
   .panel.daily-mode .form-row-2 .iconPickerGrid {
-    grid-template-columns: repeat(6, 1fr);
+    /* Reduce visual width of each icon cell by doubling columns */
+    grid-template-columns: repeat(12, 1fr);
     gap: 4px;
     padding: 4px;
     max-width: 100%;
@@ -1682,9 +1682,11 @@
   }
 
   .panel.daily-mode .form-row-2 .iconPickerGrid button {
-    min-width: 36px;
-    min-height: 36px;
-    padding: 4px;
+    /* Halve the default min dimensions so boxes look half as wide */
+    min-width: 18px;
+    min-height: 18px;
+    padding: 2px;
+    font-size: 14px;
   }
 
   .panel.daily-mode .form-row-2 #newIconPreview {
