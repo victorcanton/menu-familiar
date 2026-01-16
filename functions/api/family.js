@@ -1,6 +1,8 @@
 import { verifyJWT } from "../_lib/jwt";
 import { hashCode, generateSalt } from "../_lib/crypto";
 
+const PROTECTED_FAMILY_NAME = "CANTON LLOBET";
+
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -235,6 +237,16 @@ export async function onRequestPost({ request, env }) {
         return json({ ok: false, error: "Invalid role" }, 400);
       }
 
+      // Proteger familia específica: impedir cambio de rol
+      const targetFamilyRow = await env.DB
+        .prepare("SELECT name FROM families WHERE id = ?1")
+        .bind(target_family_id)
+        .first();
+
+      if (targetFamilyRow && String(targetFamilyRow.name).toUpperCase() === PROTECTED_FAMILY_NAME) {
+        return json({ ok: false, error: "This family is protected and its role cannot be changed" }, 403);
+      }
+
       const now = new Date().toISOString();
 
       await env.DB
@@ -411,6 +423,11 @@ export async function onRequestPost({ request, env }) {
         .bind(target_family_id)
         .first();
 
+      // Proteger familia específica: impedir cambio de código
+      if (targetFamily && String(targetFamily.name).toUpperCase() === PROTECTED_FAMILY_NAME) {
+        return json({ ok: false, error: "This family is protected and its code cannot be changed" }, 403);
+      }
+
       // Validar que el código no sea igual al nombre de la familia
       if (targetFamily && String(newCode).toLowerCase() === String(targetFamily.name).toLowerCase()) {
         return json({ ok: false, error: "Code cannot be the same as family name" }, 400);
@@ -478,14 +495,19 @@ export async function onRequestDelete({ request, env }) {
         return json({ ok: false, error: "Missing target_family_id" }, 400);
       }
 
-      // Verificar que existe la familia
+      // Verificar que existe la familia y su nombre
       const existing = await env.DB
-        .prepare("SELECT id FROM families WHERE id = ?1")
+        .prepare("SELECT id, name FROM families WHERE id = ?1")
         .bind(target_family_id)
         .first();
 
       if (!existing) {
         return json({ ok: false, error: "Family not found" }, 404);
+      }
+
+      // Proteger familia específica: impedir borrado
+      if (existing && String(existing.name).toUpperCase() === PROTECTED_FAMILY_NAME) {
+        return json({ ok: false, error: "This family is protected and cannot be deleted" }, 403);
       }
 
       // Borrar la familia
