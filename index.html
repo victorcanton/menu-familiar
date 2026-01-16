@@ -1672,8 +1672,9 @@
   .panel.daily-mode .form-row-2 .iconPickerGrid {
     /* Show as 2 rows x 6 columns */
     grid-template-columns: repeat(6, 1fr);
-    gap: 4px;
-    padding: 4px;
+    /* remove gaps between icon boxes and reduce inner padding so boxes sit tightly */
+    gap: 0px;
+    padding: 2px 2px;
     max-width: 100%;
     width: auto;
     height: auto;
