@@ -1693,6 +1693,14 @@
     box-sizing: border-box;
   }
 
+  /* Reduce svg icon size inside the daily-mode picker to keep icons small */
+  .panel.daily-mode .form-row-2 .iconPickerGrid .twSvg,
+  .panel.daily-mode .form-row-2 .iconPickerGrid button .twSvg,
+  .panel.daily-mode .form-row-2 .iconPickerGrid .iconPickerBtn .twSvg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
   .panel.daily-mode .form-row-2 #newIconPreview {
     width: 80px;
     height: 32px;
