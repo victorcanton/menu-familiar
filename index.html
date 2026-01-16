@@ -80,6 +80,13 @@
     overflow-x: visible;
   }
 
+
+  /* Protected family buttons look disabled but keep same size/alignment */
+  .protected-btn {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
   .container.not-authenticated > :not(.topbar) {
     display: none;
   }
@@ -4550,8 +4557,8 @@
             </td>
             <td style="text-align: center; padding: 10px;">
               <button class="save-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Guardar</button>
-              <button class="change-code-btn" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida" style="opacity:0.5;cursor: default;"' : ''} style="padding: 4px 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Codi</button>
-              <button class="delete-family-btn" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida" style="opacity:0.5;cursor: default;"' : ''} style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
+              <button class="change-code-btn ${isProtected ? 'protected-btn' : ''}" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida"' : ''} style="padding: 4px 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Codi</button>
+              <button class="delete-family-btn ${isProtected ? 'protected-btn' : ''}" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida"' : ''} style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
             </td>
           </tr>
         `;
