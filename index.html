@@ -1701,6 +1701,15 @@
     height: 20px !important;
   }
 
+  /* Extra specific rule targeting actual svg elements inside picker buttons */
+  .panel.daily-mode .form-row-2 .iconPickerGrid button svg,
+  .panel.daily-mode .form-row-2 .iconPickerGrid .iconPickerBtn svg {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+  }
+
   .panel.daily-mode .form-row-2 #newIconPreview {
     width: 80px;
     height: 32px;
@@ -1792,7 +1801,7 @@
       <div class="row">
         <div class="recipeForm1">
           <div class="form-row-1">
-            <input id="newName" class="inputWide" placeholder="Nom del plat (ex: crema de carbassa)">
+            <input id="newName" class="inputWide" placeholder="Nom del plat">
             <select id="newCat">
               <option value="Primer">Primer</option>
               <option value="Segon">Segon</option>
