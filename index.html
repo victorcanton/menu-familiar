@@ -4532,6 +4532,7 @@
       
       for (const f of families) {
         const displayName = f.display_name || f.name;
+        const isProtected = String(f.name || "").toUpperCase() === "CANTON LLOBET";
         familiesHtml += `
           <tr style="border-bottom: 1px solid #eee;" id="family-row-${f.id}">
             <td style="padding: 10px;">${f.name}</td>
@@ -4542,15 +4543,15 @@
             <td style="text-align: center; padding: 10px;"><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-weight: 500;">${f.recipe_count || 0}</span></td>
             <td style="text-align: center; padding: 10px;"><span style="background: #f3e5f5; padding: 4px 8px; border-radius: 4px; font-weight: 500;">${f.meals_count || 0}</span></td>
             <td style="text-align: center; padding: 10px;">
-              <select class="family-role" data-family-id="${f.id}" style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <select class="family-role" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida"' : ''} style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">
                 <option value="member" ${f.role === 'member' ? 'selected' : ''}>Membre</option>
                 <option value="admin" ${f.role === 'admin' ? 'selected' : ''}>Admin</option>
               </select>
             </td>
             <td style="text-align: center; padding: 10px;">
               <button class="save-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Guardar</button>
-              <button class="change-code-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Codi</button>
-              <button class="delete-family-btn" data-family-id="${f.id}" style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
+              <button class="change-code-btn" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida" style="opacity:0.5;cursor: default;"' : ''} style="padding: 4px 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 12px;">Codi</button>
+              <button class="delete-family-btn" data-family-id="${f.id}" ${isProtected ? 'disabled title="Familia protegida" style="opacity:0.5;cursor: default;"' : ''} style="padding: 4px 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Borrar</button>
             </td>
           </tr>
         `;
