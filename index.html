@@ -741,8 +741,8 @@
     }
   }
 
-  /* --- Daily view: Screens without enough space for 7-column weekly view (<=980px) --- */
-  @media (max-width: 980px) {
+  /* --- Daily view: Screens without enough space for 7-column weekly view (641px-980px) --- */
+  @media (max-width: 980px) and (min-width: 901px) {
     .topbar h2 {
       font-size: 24px;
       font-weight: 700;
@@ -790,6 +790,103 @@
     #weekLabel {
       font-size: 18px !important;
       font-weight: 600;
+    }
+  }
+
+  /* --- HORIZONTAL DAY CAROUSEL for mobile (<=900px) --- */
+  @media (max-width: 900px) {
+    .board {
+      overflow: hidden !important;
+      width: 100% !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    .weekCols {
+      display: flex !important;
+      grid-template-columns: unset !important;
+      grid-auto-flow: unset !important;
+      gap: 0 !important;
+      overflow-x: scroll !important;
+      overflow-y: hidden !important;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      width: 100vw !important;
+      margin-left: calc(-50vw + 50%) !important;
+      padding: 0 !important;
+      padding-bottom: 0 !important;
+      min-width: auto !important;
+      -webkit-overflow-scrolling: touch;
+      
+      /* Hide scrollbar - webkit browsers */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .weekCols::-webkit-scrollbar {
+      display: none;
+    }
+
+    .dayCol {
+      /* 100vw - 40px padding (left + right) = visible day width */
+      flex: 0 0 calc(100vw - 40px) !important;
+      width: calc(100vw - 40px) !important;
+      height: auto !important;
+      box-sizing: border-box !important;
+      border-radius: 16px !important;
+      padding: 0 20px !important;
+      margin: 0 !important;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      
+      /* Default state: slightly smaller and lower opacity */
+      opacity: 0.7;
+      transform: scale(0.95);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      
+      /* Ensure vertical scroll works inside day */
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      max-height: calc(100vh - 200px) !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Centered (active) day gets visual emphasis */
+    .dayCol:target,
+    .dayCol.active {
+      opacity: 1 !important;
+      transform: scale(1) !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    /* First and last day padding for carousel effect */
+    .dayCol:first-child {
+      margin-left: 0 !important;
+    }
+
+    .dayCol:last-child {
+      margin-right: 0 !important;
+    }
+
+    .mealName {
+      font-size: 16px !important;
+      font-weight: 600 !important;
+    }
+
+    .mealBody {
+      font-size: 14px !important;
+    }
+
+    .twSvg {
+      width: 28px !important;
+      height: 28px !important;
+    }
+
+    #weekLabel {
+      font-size: 16px !important;
+      font-weight: 600 !important;
     }
   }
 
