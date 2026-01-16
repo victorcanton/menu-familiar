@@ -2612,7 +2612,7 @@
     }
 
     function renderBoardDaily(dateISO) {
-      // Render only one day in full width for daily view
+      // Render carousel with all days of the week
       const DAY_COLORS = [
         "#f2e8e6", "#f7dfe6", "#d8eff1", "#dff0d6", "#f6efc8", "#e9e5f7", "#e7f5ff"
       ];
@@ -2630,93 +2630,104 @@
         return `${day} ${month}`;
       };
 
-      const dateObj = parseISO(dateISO);
-      const dayIdx = (dateObj.getDay() + 6) % 7;
-      const dayBg = DAY_COLORS[dayIdx];
+      const renderDayCol = (dayDateISO) => {
+        const dateObj = parseISO(dayDateISO);
+        const dayIdx = (dateObj.getDay() + 6) % 7;
+        const dayBg = DAY_COLORS[dayIdx];
 
-      const mealsHtml = MEALS.map(m => {
-        const courses = coursesForMeal(m.key);
-        const note = findNote(dateISO, m.key);
-        const noteHtml = note
-          ? `<div class="noteLine" title="${note.replaceAll('"','&quot;')}">📝 ${note}</div>`
-          : "";
+        const mealsHtml = MEALS.map(m => {
+          const courses = coursesForMeal(m.key);
+          const note = findNote(dayDateISO, m.key);
+          const noteHtml = note
+            ? `<div class="noteLine" title="${note.replaceAll('"','&quot;')}">📝 ${note}</div>`
+            : "";
 
-        const cards = courses.map(course => {
-          const sid = slotId(dateISO, m.key, course);
-          const slot = findSlot(sid);
-          if (!slot || !slot.recipe_id) return "";
+          const cards = courses.map(course => {
+            const sid = slotId(dayDateISO, m.key, course);
+            const slot = findSlot(sid);
+            if (!slot || !slot.recipe_id) return "";
 
-          const r = findRecipe(slot.recipe_id);
-          let icons = "";
-          if (r) {
-            let iconKeys = [];
-            if (r.icons) {
-              try {
-                iconKeys = JSON.parse(r.icons);
-              } catch (e) {}
-            } else if (r.icon) {
-              iconKeys = [r.icon];
+            const r = findRecipe(slot.recipe_id);
+            let icons = "";
+            if (r) {
+              let iconKeys = [];
+              if (r.icons) {
+                try {
+                  iconKeys = JSON.parse(r.icons);
+                } catch (e) {}
+              } else if (r.icon) {
+                iconKeys = [r.icon];
+              }
+              icons = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
             }
-            icons = iconKeys.map(key => `<span class="iconItem">${twemojiSvgIcon(key)}</span>`).join("");
-          }
 
-          const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
-          const cls = courseClass(course);
+            const name = r ? String(r.name || "").trim() : getRecipeName(slot.recipe_id);
+            const cls = courseClass(course);
+
+            return `
+              <div class="card ${cls}"
+                  onclick="openRecipeViewer('${slot.recipe_id}', event)">
+                <span class="cName">${name}</span>
+                <span class="cIcon">${icons}</span>
+              </div>
+            `;
+          }).filter(Boolean).join("");
+
+          const bodyId = mealBodyId(dayDateISO, m.key);
+          const isMealDirty = Object.keys(DIRTY_SLOTS)
+            .some(k => k.startsWith(`${dayDateISO}_${m.key}_`));
 
           return `
-            <div class="card ${cls}"
-                onclick="openRecipeViewer('${slot.recipe_id}', event)">
-              <span class="cName">${name}</span>
-              <span class="cIcon">${icons}</span>
+            <div class="mealRow">
+              <div class="mealLabel">${MEALS.find(x=>x.key===m.key)?.label || m.key}</div>
+              <div id="${bodyId}"
+                class="mealBody meal-${m.key} ${isMealDirty ? "dirty" : ""} ${(noteHtml || cards) ? "hasContent" : ""}"
+                data-meal="${m.key}"
+                role="button"
+                tabindex="0"
+                title="Editar ${MEALS.find(x=>x.key===m.key)?.label || m.key}"
+                onclick="openCellEditor('${dayDateISO}','${m.key}')"
+                onkeydown="if(event.key==='Enter' || event.key===' ') openCellEditor('${dayDateISO}','${m.key}')">
+                <div class="mealCards">
+                  ${noteHtml}
+                  ${cards || ""}
+                </div>
+                ${isMealDirty
+                  ? `<div class="badgeRow">
+                      <span class="dirtyBadge">Pendent de guardar</span>
+                    </div>`
+                  : ""}
+              </div>
             </div>
           `;
-        }).filter(Boolean).join("");
-
-        const bodyId = mealBodyId(dateISO, m.key);
-        const isMealDirty = Object.keys(DIRTY_SLOTS)
-          .some(k => k.startsWith(`${dateISO}_${m.key}_`));
+        }).join("");
 
         return `
-          <div class="mealRow">
-            <div class="mealLabel">${MEALS.find(x=>x.key===m.key)?.label || m.key}</div>
-            <div id="${bodyId}"
-              class="mealBody meal-${m.key} ${isMealDirty ? "dirty" : ""} ${(noteHtml || cards) ? "hasContent" : ""}"
-              data-meal="${m.key}"
-              role="button"
-              tabindex="0"
-              title="Editar ${MEALS.find(x=>x.key===m.key)?.label || m.key}"
-              onclick="openCellEditor('${dateISO}','${m.key}')"
-              onkeydown="if(event.key==='Enter' || event.key===' ') openCellEditor('${dateISO}','${m.key}')">
-              <div class="mealCards">
-                ${noteHtml}
-                ${cards || ""}
-              </div>
-              ${isMealDirty
-                ? `<div class="badgeRow">
-                    <span class="dirtyBadge">Pendent de guardar</span>
-                  </div>`
-                : ""}
+          <div class="dayCol" data-date="${dayDateISO}" style="background:${dayBg}">
+            <div class="dayHead">
+              <div class="dayName">${dayTitle(dayDateISO)}</div>
+              <div class="dayDate">${formatShortCa(dateObj)}</div>
+            </div>
+            <div class="dayMeals">
+              ${mealsHtml}
             </div>
           </div>
         `;
-      }).join("");
+      };
 
-      const colHtml = `
-        <div class="dayCol" data-date="${dateISO}" style="background:${dayBg}">
-          <div class="dayHead">
-            <div class="dayName">${dayTitle(dateISO)}</div>
-            <div class="dayDate">${formatShortCa(dateObj)}</div>
-          </div>
-          <div class="dayMeals">
-            ${mealsHtml}
-          </div>
-        </div>
-      `;
+      // Generate carousel with 7 days from WEEK_START_ISO
+      const weekStart = parseISO(WEEK_START_ISO);
+      const daysHtml = [];
+      for (let i = 0; i < 7; i++) {
+        const d = addDaysDate(weekStart, i);
+        const dISO = iso(d);
+        daysHtml.push(renderDayCol(dISO));
+      }
 
       document.getElementById("grid").innerHTML = `
         <div class="board" id="dailyBoard">
           <div class="weekCols">
-            ${colHtml}
+            ${daysHtml.join("")}
           </div>
         </div>
       `;
