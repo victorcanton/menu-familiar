@@ -2871,79 +2871,29 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Update UI elements for the new day
-                updateTitleForMode();
-                updateDateLabelForMode();
-                updateRecipesData();
-                
-                // Block scroll in both directions - apply to html, body and scroller
-                const html = document.documentElement;
-                const body = document.body;
-                html.style.overflowY = "hidden";
-                html.style.overflowX = "hidden";
-                body.style.overflowY = "hidden";
-                body.style.overflowX = "hidden";
-                scroller.style.overflowX = "hidden";
-                scroller.style.overflowY = "hidden";
-                
                 // Disable transitions for instant visual updates
                 allDays.forEach(day => day.style.transition = "none");
                 
-                // Save scroll position
-                const savedScrollY = window.scrollY;
-                console.log("SWIPE: Starting to day", CURRENT_DISPLAY_DATE, "savedScrollY:", savedScrollY);
+                // Block horizontal scroll only
+                scroller.style.overflowX = "hidden";
                 
-                // Animate the scroll horizontally with smooth behavior
+                // Center the day with smooth animation
                 scroller.style.scrollBehavior = "smooth";
-                const centerDay = () => {
-                  nextDay.scrollIntoView({
-                    behavior: "smooth",
-                    block: "nearest",
-                    inline: "center"
-                  });
-                };
+                nextDay.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                  inline: "center"
+                });
                 
-                // Start smooth scroll immediately
-                centerDay();
-                
-                // Restore vertical position immediately and multiple times
-                const restoreY = () => window.scrollTo(0, savedScrollY);
-                restoreY();
-                setTimeout(restoreY, 10);
-                setTimeout(restoreY, 100);
-                setTimeout(restoreY, 400);
-                setTimeout(restoreY, 800);
-                
-                // Counter momentum: force position again at 600ms
+                // Re-enable scroll after animation settles
                 setTimeout(() => {
-                  centerDay();
-                  restoreY();
-                  console.log("SWIPE: Re-forced at 600ms");
-                }, 600);
-                
-                // Final enforcement before re-enabling scroll
-                setTimeout(() => {
-                  centerDay();
-                  restoreY();
-                  console.log("SWIPE: Final force at 1000ms");
-                }, 1000);
-                
-                // Re-enable scroll and transitions
-                setTimeout(() => {
-                  html.style.overflowY = "";
-                  html.style.overflowX = "";
-                  body.style.overflowY = "";
-                  body.style.overflowX = "";
                   scroller.style.overflowX = "scroll";
-                  scroller.style.overflowY = "hidden";
                   scroller.style.scrollBehavior = "auto";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
-                  restoreY();
-                  console.log("=== SWIPE COMPLETE ===");
-                }, 1800);
+                }, 1000);
               }
               return;
             }
