@@ -2804,11 +2804,49 @@
 
         // Require mostly horizontal movement
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > THRESHOLD) {
+          // On mobile carousel: handle swipe without full redraw
+          if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
+            const scroller = document.querySelector(".weekCols");
+            if (scroller) {
+              const currentActive = scroller.querySelector(".dayCol.active");
+              const allDays = Array.from(scroller.querySelectorAll(".dayCol"));
+              const currentIdx = currentActive ? allDays.indexOf(currentActive) : 0;
+              
+              let nextIdx = currentIdx;
+              if (diffX > 0) {
+                // Swipe right = previous day
+                nextIdx = Math.max(0, currentIdx - 1);
+              } else {
+                // Swipe left = next day
+                nextIdx = Math.min(allDays.length - 1, currentIdx + 1);
+              }
+
+              if (nextIdx !== currentIdx) {
+                const nextDay = allDays[nextIdx];
+                const nextDate = nextDay.getAttribute("data-date");
+                
+                // Update CURRENT_DISPLAY_DATE without full redraw
+                CURRENT_DISPLAY_DATE = nextDate;
+                
+                // Update active class
+                currentActive?.classList.remove("active");
+                nextDay.classList.add("active");
+                
+                // Scroll to new day (instant, no animation)
+                const elLeft = nextDay.offsetLeft;
+                const elWidth = nextDay.offsetWidth;
+                const scrollerWidth = scroller.offsetWidth;
+                const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
+                scroller.scrollLeft = scrollPos;
+              }
+              return; // Don't call navigateToDate for mobile carousel
+            }
+          }
+          
+          // Desktop/tablet: use normal navigation
           if (diffX > 0) {
-            // Swipe right = previous day
             prevDay();
           } else {
-            // Swipe left = next day
             nextDay();
           }
         }
