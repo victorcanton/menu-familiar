@@ -2833,8 +2833,17 @@
 
       el.classList.add("active");
 
-      // Center the day in viewport
-      el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      // Calculate scroll position to center the element
+      // Position of element relative to scroller left edge
+      const elLeft = el.offsetLeft;
+      const elWidth = el.offsetWidth;
+      const scrollerWidth = scroller.offsetWidth;
+      
+      // Calculate position to center: element center - scroller center
+      const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
+
+      // Scroll directly to position (smooth but fast)
+      scroller.scroll({ left: scrollPos, behavior: "smooth" });
     }
 
 
