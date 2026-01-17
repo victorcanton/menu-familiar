@@ -816,12 +816,9 @@
       scroll-behavior: smooth;
       scroll-snap-type: none;
       width: 100vw !important;
-      margin-left: calc(-50vw + 50%) !important;
-      margin-right: calc(-50vw + 50%) !important;
-      padding: 12px !important;
-      padding-left: calc(50vw - 37.5vw + 12px) !important;
-      padding-right: calc(50vw - 37.5vw + 12px) !important;
+      padding: 12px 12.5vw !important;
       padding-bottom: 12px !important;
+      margin: 0 !important;
       min-width: auto !important;
       box-sizing: content-box !important;
       -webkit-overflow-scrolling: touch;
@@ -2845,14 +2842,16 @@
                 currentActive?.classList.remove("active");
                 nextDay.classList.add("active");
                 
-                // Scroll to new day instantly
-                const elLeft = nextDay.offsetLeft;
-                const elWidth = nextDay.offsetWidth;
+                // Calculate and apply exact scroll position to center this day
+                const dayWidth = nextDay.offsetWidth;
                 const scrollerWidth = scroller.offsetWidth;
-                const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
-                scroller.scrollLeft = scrollPos;
+                // Center the day: (day position + day center) - (scroller center)
+                const exactScrollPos = nextDay.offsetLeft + (dayWidth / 2) - (scrollerWidth / 2);
                 
-                // Force reflow to apply changes
+                // Apply immediately
+                scroller.scrollLeft = exactScrollPos;
+                
+                // Force reflow
                 void nextDay.offsetHeight;
               }
               return; // Don't call navigateToDate for mobile carousel
@@ -2888,6 +2887,18 @@
 
           // Re-enable transitions AFTER momentum scroll completely stops
           scrollTimeout = setTimeout(() => {
+            const scroller = document.querySelector(".weekCols");
+            if (scroller) {
+              // When scroll stabilizes, force exact centering of active day
+              const activeDay = scroller.querySelector(".dayCol.active");
+              if (activeDay) {
+                const dayWidth = activeDay.offsetWidth;
+                const scrollerWidth = scroller.offsetWidth;
+                const exactScrollPos = activeDay.offsetLeft + (dayWidth / 2) - (scrollerWidth / 2);
+                scroller.scrollLeft = exactScrollPos;
+              }
+            }
+            
             allDays.forEach(day => {
               day.classList.add("transitions-enabled");
             });
