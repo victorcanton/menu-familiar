@@ -2844,26 +2844,39 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Block scroll input temporarily to prevent momentum scroll interference
+                // Completely block scroll input (both horizontal and vertical)
+                const originalOverflowX = scroller.style.overflowX;
+                const originalOverflowY = scroller.style.overflowY;
                 scroller.style.overflowX = "hidden";
+                scroller.style.overflowY = "hidden";
                 
-                // Use scrollIntoView with smooth behavior to center the day
-                // This is more reliable than setting scrollLeft directly during momentum scroll
+                // Calculate exact scroll position
+                const paddingLeft = 12.5 * window.innerWidth / 100;
+                const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
+                const viewportCenter = scroller.offsetWidth / 2;
+                const scrollPos = dayCenter - paddingLeft - viewportCenter;
+                
+                // Set scroll position multiple times to override momentum scroll
+                scroller.scrollLeft = scrollPos;
+                
+                // Force again after tiny delay
                 setTimeout(() => {
-                  nextDay.scrollIntoView({
-                    behavior: "instant",
-                    block: "nearest",
-                    inline: "center"
-                  });
-                }, 10);
+                  scroller.scrollLeft = scrollPos;
+                }, 5);
                 
-                // Re-enable scroll and transitions after momentum settles
+                // Force a third time after another delay
+                setTimeout(() => {
+                  scroller.scrollLeft = scrollPos;
+                }, 20);
+                
+                // Re-enable scroll and transitions after momentum settles completely
                 setTimeout(() => {
                   scroller.style.overflowX = "scroll";
+                  scroller.style.overflowY = "hidden";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
-                }, 800);
+                }, 1200);
               }
               return;
             }
