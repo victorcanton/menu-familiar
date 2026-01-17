@@ -2793,6 +2793,22 @@
       let isSwipeInProgress = false;
       const THRESHOLD = 50;
 
+      // Center first day on initial load
+      setTimeout(() => {
+        const scroller = document.querySelector(".weekCols");
+        if (scroller && window.matchMedia("(max-width: 900px)").matches) {
+          const firstDay = scroller.querySelector(".dayCol");
+          if (firstDay) {
+            firstDay.scrollIntoView({
+              behavior: "instant",
+              block: "nearest",
+              inline: "center"
+            });
+            console.log("INIT: First day centered");
+          }
+        }
+      }, 100);
+
       board.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -2863,19 +2879,33 @@
                 const savedScrollY = window.scrollY;
                 console.log("SWIPE: Saved scrollY:", savedScrollY);
                 
-                // Use scrollIntoView to center horizontally
-                // This is the ONLY thing that actually works for centering
-                setTimeout(() => {
+                // Use scrollIntoView to center horizontally - call multiple times to counter momentum
+                const centerDay = () => {
                   nextDay.scrollIntoView({
                     behavior: "instant",
                     block: "nearest",
                     inline: "center"
                   });
-                  
-                  // Immediately restore vertical scroll to prevent auto-scroll
                   window.scrollTo(0, savedScrollY);
-                  console.log("SWIPE: scrollIntoView called, restored scrollY to", savedScrollY);
+                };
+                
+                // First centering
+                setTimeout(() => {
+                  centerDay();
+                  console.log("SWIPE: First scrollIntoView at 5ms");
                 }, 5);
+                
+                // Counter momentum scroll: re-force the scroll position at 400ms
+                setTimeout(() => {
+                  centerDay();
+                  console.log("SWIPE: Re-forced scrollIntoView at 400ms");
+                }, 400);
+                
+                // Final enforcement at 800ms before re-enabling scroll
+                setTimeout(() => {
+                  centerDay();
+                  console.log("SWIPE: Final scrollIntoView at 800ms");
+                }, 800);
                 
                 // Re-enable scroll after momentum settles completely
                 setTimeout(() => {
@@ -2884,6 +2914,7 @@
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
+                  isSwipeInProgress = false;
                   console.log("=== SWIPE COMPLETE ===");
                 }, 1200);
               }
