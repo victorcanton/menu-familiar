@@ -2844,38 +2844,32 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Completely block scroll input (both horizontal and vertical)
-                const originalOverflowX = scroller.style.overflowX;
-                const originalOverflowY = scroller.style.overflowY;
+                // Completely block scroll (both directions)
                 scroller.style.overflowX = "hidden";
                 scroller.style.overflowY = "hidden";
                 
-                // Calculate exact scroll position
-                const paddingLeft = 12.5 * window.innerWidth / 100;
-                const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
-                const viewportCenter = scroller.offsetWidth / 2;
-                const scrollPos = dayCenter - paddingLeft - viewportCenter;
+                console.log("SWIPE: Blocking scroll and centering day:", nextDay.getAttribute("data-date"));
                 
-                // Set scroll position multiple times to override momentum scroll
-                scroller.scrollLeft = scrollPos;
-                
-                // Force again after tiny delay
+                // Use scrollIntoView ONLY for horizontal centering
+                // block: "nearest" = don't scroll vertically if already visible
+                // inline: "center" = scroll horizontally to center
                 setTimeout(() => {
-                  scroller.scrollLeft = scrollPos;
+                  nextDay.scrollIntoView({
+                    behavior: "instant",
+                    block: "nearest",
+                    inline: "center"
+                  });
+                  console.log("SWIPE: scrollIntoView called");
                 }, 5);
                 
-                // Force a third time after another delay
-                setTimeout(() => {
-                  scroller.scrollLeft = scrollPos;
-                }, 20);
-                
-                // Re-enable scroll and transitions after momentum settles completely
+                // Re-enable scroll after momentum settles completely
                 setTimeout(() => {
                   scroller.style.overflowX = "scroll";
                   scroller.style.overflowY = "hidden";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
+                  console.log("SWIPE: Scroll re-enabled, transitions restored");
                 }, 1200);
               }
               return;
