@@ -2844,19 +2844,27 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Center the day: scroll to position where day center = viewport center
+                // Block scroll input temporarily
+                scroller.style.pointerEvents = "none";
+                
+                // Center the day in viewport
+                // offsetLeft already includes the 12.5vw padding-left
+                // To center: scrollLeft must equal (day.offsetLeft + day.width/2) - (scroller.width/2)
+                // BUT we need to subtract the padding because scrollLeft=0 starts AFTER the padding
+                const paddingLeft = 12.5 * window.innerWidth / 100;
                 const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
                 const viewportCenter = scroller.offsetWidth / 2;
-                const scrollPos = dayCenter - viewportCenter;
+                const scrollPos = dayCenter - paddingLeft - viewportCenter;
                 
                 scroller.scrollLeft = scrollPos;
                 
-                // Re-enable transitions after a tiny delay
+                // Re-enable pointer events and transitions
                 setTimeout(() => {
+                  scroller.style.pointerEvents = "";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
-                }, 50);
+                }, 500);
               }
               return;
             }
