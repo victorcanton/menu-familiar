@@ -2791,6 +2791,7 @@
       let startX = 0;
       let startY = 0;
       const THRESHOLD = 50;
+      let scrollTimeout;
 
       board.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
@@ -2850,11 +2851,6 @@
                 allDays.forEach(day => {
                   day.style.transition = "";
                 });
-                
-                // After scroll stabilizes, sync active class with actual visible position
-                setTimeout(() => {
-                  updateActiveFromScroll(scroller);
-                }, 50);
               }
               return; // Don't call navigateToDate for mobile carousel
             }
@@ -2873,7 +2869,24 @@
       const scroller = document.querySelector(".weekCols");
       if (scroller) {
         scroller.addEventListener("scroll", () => {
+          // Disable transitions during scroll
+          const allDays = scroller.querySelectorAll(".dayCol");
+          allDays.forEach(day => {
+            day.style.transition = "none";
+          });
+
+          // Clear any pending timeout
+          clearTimeout(scrollTimeout);
+
+          // Update active class during scroll (without transitions)
           updateActiveFromScroll(scroller);
+
+          // Re-enable transitions after scroll ends
+          scrollTimeout = setTimeout(() => {
+            allDays.forEach(day => {
+              day.style.transition = "";
+            });
+          }, 150);
         }, { passive: true });
       }
     }
