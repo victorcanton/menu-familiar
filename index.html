@@ -274,7 +274,8 @@
     grid-template-columns: repeat(7, minmax(130px, 1fr));
     gap: 10px;
 
-    /* CLAU: forcem una amplada mínima perquè el grid NO col·lapsi ni apili */
+    
+    
     min-width: 0;
   }
 
@@ -2825,19 +2826,30 @@
                 const nextDay = allDays[nextIdx];
                 const nextDate = nextDay.getAttribute("data-date");
                 
+                // Temporarily disable transitions to avoid flicker
+                allDays.forEach(day => {
+                  day.style.transition = "none";
+                });
+                
                 // Update CURRENT_DISPLAY_DATE without full redraw
                 CURRENT_DISPLAY_DATE = nextDate;
                 
-                // Update active class
+                // Update active class instantly (no animation)
                 currentActive?.classList.remove("active");
                 nextDay.classList.add("active");
                 
-                // Scroll to new day (instant, no animation)
+                // Scroll to new day instantly
                 const elLeft = nextDay.offsetLeft;
                 const elWidth = nextDay.offsetWidth;
                 const scrollerWidth = scroller.offsetWidth;
                 const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
                 scroller.scrollLeft = scrollPos;
+                
+                // Force reflow to apply changes, then restore transitions
+                void nextDay.offsetHeight; // Trigger reflow
+                allDays.forEach(day => {
+                  day.style.transition = "";
+                });
               }
               return; // Don't call navigateToDate for mobile carousel
             }
