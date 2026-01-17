@@ -819,6 +819,7 @@
       margin-left: calc(-50vw + 50%) !important;
       margin-right: calc(-50vw + 50%) !important;
       padding: 12px 20px !important;
+      padding-right: calc(20px + env(safe-area-inset-right)) !important;
       padding-bottom: 12px !important;
       min-width: auto !important;
       box-sizing: content-box !important;
@@ -2431,8 +2432,11 @@
       const weekLabel = document.getElementById("weekLabel");
       if (!weekLabel) return;
       
-      if (isDailyViewMode() && CURRENT_DISPLAY_DATE) {
-        // In daily view: hide the week label
+      // On mobile carousel view (<=900px), always show week controls
+      const isMobileCarousel = window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+      
+      if (isDailyViewMode() && CURRENT_DISPLAY_DATE && !isMobileCarousel) {
+        // In daily view (non-mobile): hide the week label
         weekLabel.style.display = "none";
       } else {
         weekLabel.style.display = "";
