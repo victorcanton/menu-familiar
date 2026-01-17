@@ -2793,18 +2793,21 @@
       let isSwipeInProgress = false;
       const THRESHOLD = 50;
 
-      // Center first day on initial load
+      // Center the current day on initial load
       setTimeout(() => {
         const scroller = document.querySelector(".weekCols");
         if (scroller && window.matchMedia("(max-width: 900px)").matches) {
-          const firstDay = scroller.querySelector(".dayCol");
-          if (firstDay) {
-            firstDay.scrollIntoView({
+          // Find the day that matches CURRENT_DISPLAY_DATE
+          const targetDay = scroller.querySelector(`.dayCol[data-date="${CURRENT_DISPLAY_DATE}"]`);
+          const dayToCenter = targetDay || scroller.querySelector(".dayCol");
+          
+          if (dayToCenter) {
+            dayToCenter.scrollIntoView({
               behavior: "instant",
               block: "nearest",
               inline: "center"
             });
-            console.log("INIT: First day centered");
+            console.log("INIT: Centered day", CURRENT_DISPLAY_DATE);
           }
         }
       }, 100);
@@ -2815,7 +2818,7 @@
         isSwipeInProgress = false;
       }, false);
 
-      // Prevent all scroll during and after swipe
+      // Prevent vertical scroll during swipe
       board.addEventListener("touchmove", (e) => {
         if (isSwipeInProgress) {
           e.preventDefault();
@@ -2861,9 +2864,6 @@
               }
 
               if (nextIdx !== currentIdx) {
-                // Disable transitions
-                allDays.forEach(day => day.style.transition = "none");
-                
                 const nextDay = allDays[nextIdx];
                 CURRENT_DISPLAY_DATE = nextDay.getAttribute("data-date");
                 
@@ -2871,50 +2871,62 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Completely block scroll (both directions)
+                // Block scroll in both directions - apply to body and scroller
+                const body = document.body;
+                body.style.overflowY = "hidden";
                 scroller.style.overflowX = "hidden";
                 scroller.style.overflowY = "hidden";
                 
-                // Save current vertical scroll position
-                const savedScrollY = window.scrollY;
-                console.log("SWIPE: Saved scrollY:", savedScrollY);
+                // Disable transitions for instant visual updates
+                allDays.forEach(day => day.style.transition = "none");
                 
-                // Use scrollIntoView to center horizontally - call multiple times to counter momentum
+                // Save scroll position
+                const savedScrollY = window.scrollY;
+                console.log("SWIPE: Starting to day", CURRENT_DISPLAY_DATE, "savedScrollY:", savedScrollY);
+                
+                // Animate the scroll horizontally with smooth behavior
+                scroller.style.scrollBehavior = "smooth";
                 const centerDay = () => {
                   nextDay.scrollIntoView({
-                    behavior: "instant",
+                    behavior: "smooth",
                     block: "nearest",
                     inline: "center"
                   });
-                  window.scrollTo(0, savedScrollY);
                 };
                 
-                // First centering
-                setTimeout(() => {
-                  centerDay();
-                  console.log("SWIPE: First scrollIntoView at 5ms");
-                }, 5);
+                // Start smooth scroll immediately
+                centerDay();
                 
-                // Counter momentum scroll: re-force the scroll position at 400ms
+                // Restore vertical position immediately
+                setTimeout(() => {
+                  window.scrollTo(0, savedScrollY);
+                }, 10);
+                
+                // Counter momentum: force position again at 400ms
                 setTimeout(() => {
                   centerDay();
-                  console.log("SWIPE: Re-forced scrollIntoView at 400ms");
+                  window.scrollTo(0, savedScrollY);
+                  console.log("SWIPE: Re-forced at 400ms");
                 }, 400);
                 
-                // Final enforcement at 800ms before re-enabling scroll
+                // Final enforcement before re-enabling scroll
                 setTimeout(() => {
                   centerDay();
-                  console.log("SWIPE: Final scrollIntoView at 800ms");
+                  window.scrollTo(0, savedScrollY);
+                  console.log("SWIPE: Final force at 800ms");
                 }, 800);
                 
-                // Re-enable scroll after momentum settles completely
+                // Re-enable scroll and transitions
                 setTimeout(() => {
+                  body.style.overflowY = "";
                   scroller.style.overflowX = "scroll";
                   scroller.style.overflowY = "hidden";
+                  scroller.style.scrollBehavior = "auto";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
+                  window.scrollTo(0, savedScrollY);
                   console.log("=== SWIPE COMPLETE ===");
                 }, 1200);
               }
