@@ -2847,16 +2847,27 @@
                 // Block scroll input temporarily
                 scroller.style.pointerEvents = "none";
                 
-                // Center the day in viewport
-                // offsetLeft already includes the 12.5vw padding-left
-                // To center: scrollLeft must equal (day.offsetLeft + day.width/2) - (scroller.width/2)
-                // BUT we need to subtract the padding because scrollLeft=0 starts AFTER the padding
+                // DEBUG: Log values for analysis
                 const paddingLeft = 12.5 * window.innerWidth / 100;
                 const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
                 const viewportCenter = scroller.offsetWidth / 2;
                 const scrollPos = dayCenter - paddingLeft - viewportCenter;
                 
+                console.log("=== SWIPE DEBUG ===");
+                console.log("window.innerWidth:", window.innerWidth);
+                console.log("paddingLeft (12.5vw):", paddingLeft);
+                console.log("nextDay.offsetLeft:", nextDay.offsetLeft);
+                console.log("nextDay.offsetWidth:", nextDay.offsetWidth);
+                console.log("dayCenter:", dayCenter);
+                console.log("scroller.offsetWidth:", scroller.offsetWidth);
+                console.log("viewportCenter:", viewportCenter);
+                console.log("scrollPos calculated:", scrollPos);
+                console.log("scroller.scrollLeft before:", scroller.scrollLeft);
+                
                 scroller.scrollLeft = scrollPos;
+                
+                console.log("scroller.scrollLeft after:", scroller.scrollLeft);
+                console.log("====================");
                 
                 // Re-enable pointer events and transitions
                 setTimeout(() => {
