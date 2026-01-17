@@ -2871,9 +2871,18 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Block scroll in both directions - apply to body and scroller
+                // Update UI elements for the new day
+                updateTitleForMode();
+                updateDateLabelForMode();
+                updateRecipesData();
+                
+                // Block scroll in both directions - apply to html, body and scroller
+                const html = document.documentElement;
                 const body = document.body;
+                html.style.overflowY = "hidden";
+                html.style.overflowX = "hidden";
                 body.style.overflowY = "hidden";
+                body.style.overflowX = "hidden";
                 scroller.style.overflowX = "hidden";
                 scroller.style.overflowY = "hidden";
                 
@@ -2897,28 +2906,34 @@
                 // Start smooth scroll immediately
                 centerDay();
                 
-                // Restore vertical position immediately
-                setTimeout(() => {
-                  window.scrollTo(0, savedScrollY);
-                }, 10);
+                // Restore vertical position immediately and multiple times
+                const restoreY = () => window.scrollTo(0, savedScrollY);
+                restoreY();
+                setTimeout(restoreY, 10);
+                setTimeout(restoreY, 100);
+                setTimeout(restoreY, 400);
+                setTimeout(restoreY, 800);
                 
-                // Counter momentum: force position again at 400ms
+                // Counter momentum: force position again at 600ms
                 setTimeout(() => {
                   centerDay();
-                  window.scrollTo(0, savedScrollY);
-                  console.log("SWIPE: Re-forced at 400ms");
-                }, 400);
+                  restoreY();
+                  console.log("SWIPE: Re-forced at 600ms");
+                }, 600);
                 
                 // Final enforcement before re-enabling scroll
                 setTimeout(() => {
                   centerDay();
-                  window.scrollTo(0, savedScrollY);
-                  console.log("SWIPE: Final force at 800ms");
-                }, 800);
+                  restoreY();
+                  console.log("SWIPE: Final force at 1000ms");
+                }, 1000);
                 
                 // Re-enable scroll and transitions
                 setTimeout(() => {
+                  html.style.overflowY = "";
+                  html.style.overflowX = "";
                   body.style.overflowY = "";
+                  body.style.overflowX = "";
                   scroller.style.overflowX = "scroll";
                   scroller.style.overflowY = "hidden";
                   scroller.style.scrollBehavior = "auto";
@@ -2926,9 +2941,9 @@
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
-                  window.scrollTo(0, savedScrollY);
+                  restoreY();
                   console.log("=== SWIPE COMPLETE ===");
-                }, 1200);
+                }, 1800);
               }
               return;
             }
