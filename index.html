@@ -843,22 +843,19 @@
       padding: 12px !important;
       margin-right: 8px !important;
       
-      /* Default state: slightly smaller and lower opacity */
-      opacity: 0.7;
-      transform: scale(0.95);
-      transition: opacity 0.3s ease, transform 0.3s ease;
+      /* Will be updated dynamically via JavaScript based on scroll position */
+      opacity: 1;
+      transform: scale(1);
+      transition: none;
       
       /* Content flows naturally, no forced scrolling */
       overflow: visible !important;
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Centered (active) day gets visual emphasis */
-    .dayCol:target,
-    .dayCol.active {
-      opacity: 1 !important;
-      transform: scale(1) !important;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    /* When transitions are re-enabled after scroll stops, smooth out future state changes */
+    .dayCol.transitions-enabled {
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
     /* Remove extra margin from last item */
@@ -2868,7 +2865,7 @@
       const scroller = document.querySelector(".weekCols");
       if (scroller) {
         scroller.addEventListener("scroll", () => {
-          // Disable transitions during scroll
+          // Disable transitions during scroll for instant updates
           const allDays = scroller.querySelectorAll(".dayCol");
           allDays.forEach(day => {
             day.style.transition = "none";
@@ -2877,13 +2874,13 @@
           // Clear any pending timeout
           clearTimeout(scrollTimeout);
 
-          // Update active class during scroll (without transitions)
-          updateActiveFromScroll(scroller);
+          // Update scale/opacity based on distance from center, and sync active class
+          updateDayStatesFromScroll(scroller);
 
           // Re-enable transitions AFTER momentum scroll completely stops
           scrollTimeout = setTimeout(() => {
             allDays.forEach(day => {
-              day.style.transition = "";
+              day.classList.add("transitions-enabled");
             });
             isScrolling = false;
           }, 600); // Increased to 600ms for Android momentum scroll
@@ -2891,7 +2888,7 @@
       }
     }
 
-    function updateActiveFromScroll(scroller) {
+    function updateDayStatesFromScroll(scroller) {
       if (!scroller) return;
 
       const scrollerWidth = scroller.offsetWidth;
@@ -2901,22 +2898,44 @@
       let closestDay = null;
       let closestDistance = Infinity;
 
-      // Find which day's center is closest to scroll center
+      // For each day, calculate distance to center and apply proportional scale/opacity
       allDays.forEach(day => {
         const dayCenter = day.offsetLeft + (day.offsetWidth / 2);
         const distance = Math.abs(dayCenter - scrollCenter);
         
+        // Find closest day for active class
         if (distance < closestDistance) {
           closestDistance = distance;
           closestDay = day;
         }
+
+        // Calculate proportional scale and opacity based on distance
+        // Max distance is roughly half the viewport width (when day is at edge)
+        const maxDistance = scrollerWidth / 2;
+        const ratio = Math.min(distance / maxDistance, 1); // 0 = centered, 1 = at edge or beyond
+        
+        // Scale from 1.0 (center) to 0.95 (edges)
+        const scale = 1 - (ratio * 0.05);
+        
+        // Opacity from 1.0 (center) to 0.7 (edges)
+        const opacity = 1 - (ratio * 0.3);
+        
+        // Apply directly without animation
+        day.style.transform = `scale(${scale})`;
+        day.style.opacity = opacity;
       });
 
-      // Update active class and CURRENT_DISPLAY_DATE based on actual scroll position
+      // Update CURRENT_DISPLAY_DATE based on closest day
       if (closestDay) {
-        allDays.forEach(day => day.classList.remove("active"));
-        closestDay.classList.add("active");
         CURRENT_DISPLAY_DATE = closestDay.getAttribute("data-date");
+      }
+
+      // Remove all active classes (we're using proportional styling now)
+      allDays.forEach(day => day.classList.remove("active"));
+      
+      // Add active class to closest day for visual feedback
+      if (closestDay) {
+        closestDay.classList.add("active");
       }
     }
 
