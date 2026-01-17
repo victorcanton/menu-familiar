@@ -2791,13 +2791,10 @@
       let startX = 0;
       let startY = 0;
       const THRESHOLD = 50;
-      let scrollTimeout;
-      let isScrolling = false;
 
       board.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-        isScrolling = true;
       }, false);
 
       board.addEventListener("touchend", (e) => {
@@ -2812,53 +2809,56 @@
           if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
             const scroller = document.querySelector(".weekCols");
             if (scroller) {
-              const currentActive = scroller.querySelector(".dayCol.active");
               const allDays = Array.from(scroller.querySelectorAll(".dayCol"));
-              const currentIdx = currentActive ? allDays.indexOf(currentActive) : 0;
               
-              // Limit to exactly one day per swipe (not two)
+              // Find currently centered day
+              const scrollCenter = scroller.scrollLeft + scroller.offsetWidth / 2;
+              let currentIdx = 0;
+              let minDistance = Infinity;
+              
+              allDays.forEach((day, idx) => {
+                const dayCenter = day.offsetLeft + day.offsetWidth / 2;
+                const distance = Math.abs(dayCenter - scrollCenter);
+                if (distance < minDistance) {
+                  minDistance = distance;
+                  currentIdx = idx;
+                }
+              });
+              
+              // Determine next day (only one step)
               let nextIdx = currentIdx;
               if (diffX > 0) {
-                // Swipe right = previous day (one step only)
                 nextIdx = Math.max(0, currentIdx - 1);
               } else {
-                // Swipe left = next day (one step only)
                 nextIdx = Math.min(allDays.length - 1, currentIdx + 1);
               }
 
               if (nextIdx !== currentIdx) {
+                // Disable transitions
+                allDays.forEach(day => day.style.transition = "none");
+                
                 const nextDay = allDays[nextIdx];
-                const nextDate = nextDay.getAttribute("data-date");
+                CURRENT_DISPLAY_DATE = nextDay.getAttribute("data-date");
                 
-                // Disable all transitions
-                allDays.forEach(day => {
-                  day.style.transition = "none";
-                });
-                
-                // Update CURRENT_DISPLAY_DATE without full redraw
-                CURRENT_DISPLAY_DATE = nextDate;
-                
-                // Update active class instantly (no animation)
-                currentActive?.classList.remove("active");
+                // Update active class
+                allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Calculate exact scroll position to center the day
-                // dayCol offsetLeft is relative to the flex container (including padding-left)
-                // scrollLeft=0 shows the first day starting at -12.5vw (off-screen left due to padding)
-                // To center a day in the viewport: scrollLeft = offsetLeft - paddingLeft + (dayWidth/2) - (viewportWidth/2)
-                const paddingLeft = 12.5 * window.innerWidth / 100; // 12.5vw in pixels
-                const dayLeft = nextDay.offsetLeft;
-                const dayWidth = nextDay.offsetWidth;
-                const scrollerWidth = scroller.offsetWidth;
-                const exactScrollPos = dayLeft - paddingLeft + (dayWidth / 2) - (scrollerWidth / 2);
+                // Center the day: scroll to position where day center = viewport center
+                const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
+                const viewportCenter = scroller.offsetWidth / 2;
+                const scrollPos = dayCenter - viewportCenter;
                 
-                // Apply immediately
-                scroller.scrollLeft = exactScrollPos;
+                scroller.scrollLeft = scrollPos;
                 
-                // Force reflow
-                void nextDay.offsetHeight;
+                // Re-enable transitions after a tiny delay
+                setTimeout(() => {
+                  allDays.forEach(day => {
+                    day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+                  });
+                }, 50);
               }
-              return; // Don't call navigateToDate for mobile carousel
+              return;
             }
           }
           
@@ -2869,86 +2869,7 @@
             nextDay();
           }
         }
-        
-        isScrolling = false;
       }, false);
-
-      // Add scroll listener to keep active class in sync with actual scroll position
-      const scroller = document.querySelector(".weekCols");
-      if (scroller) {
-        scroller.addEventListener("scroll", () => {
-          // Disable transitions during scroll for instant updates
-          const allDays = scroller.querySelectorAll(".dayCol");
-          allDays.forEach(day => {
-            day.style.transition = "none";
-          });
-
-          // Clear any pending timeout
-          clearTimeout(scrollTimeout);
-
-          // Update scale/opacity based on distance from center, and sync active class
-          updateDayStatesFromScroll(scroller);
-
-          // Re-enable transitions AFTER momentum scroll completely stops
-          scrollTimeout = setTimeout(() => {
-            allDays.forEach(day => {
-              day.classList.add("transitions-enabled");
-            });
-            isScrolling = false;
-          }, 600); // Increased to 600ms for Android momentum scroll
-        }, { passive: true });
-      }
-    }
-
-    function updateDayStatesFromScroll(scroller) {
-      if (!scroller) return;
-
-      const scrollerWidth = scroller.offsetWidth;
-      const scrollCenter = scroller.scrollLeft + (scrollerWidth / 2);
-      const allDays = scroller.querySelectorAll(".dayCol");
-      
-      let closestDay = null;
-      let closestDistance = Infinity;
-
-      // For each day, calculate distance to center and apply proportional scale/opacity
-      allDays.forEach(day => {
-        const dayCenter = day.offsetLeft + (day.offsetWidth / 2);
-        const distance = Math.abs(dayCenter - scrollCenter);
-        
-        // Find closest day for active class
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestDay = day;
-        }
-
-        // Calculate proportional scale and opacity based on distance
-        // Max distance is roughly half the viewport width (when day is at edge)
-        const maxDistance = scrollerWidth / 2;
-        const ratio = Math.min(distance / maxDistance, 1); // 0 = centered, 1 = at edge or beyond
-        
-        // Scale from 1.0 (center) to 0.95 (edges)
-        const scale = 1 - (ratio * 0.05);
-        
-        // Opacity from 1.0 (center) to 0.7 (edges)
-        const opacity = 1 - (ratio * 0.3);
-        
-        // Apply directly without animation
-        day.style.transform = `scale(${scale})`;
-        day.style.opacity = opacity;
-      });
-
-      // Update CURRENT_DISPLAY_DATE based on closest day
-      if (closestDay) {
-        CURRENT_DISPLAY_DATE = closestDay.getAttribute("data-date");
-      }
-
-      // Remove all active classes (we're using proportional styling now)
-      allDays.forEach(day => day.classList.remove("active"));
-      
-      // Add active class to closest day for visual feedback
-      if (closestDay) {
-        closestDay.classList.add("active");
-      }
     }
 
     function scrollToDateOnMobile(dateISO){
