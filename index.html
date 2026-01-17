@@ -2842,8 +2842,8 @@
       // Calculate position to center: element center - scroller center
       const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
 
-      // Scroll directly to position (smooth but fast)
-      scroller.scroll({ left: scrollPos, behavior: "smooth" });
+      // Scroll instantly to position (no animation to avoid jump effect)
+      scroller.scrollLeft = scrollPos;
     }
 
 
