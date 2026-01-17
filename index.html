@@ -2790,12 +2790,21 @@
 
       let startX = 0;
       let startY = 0;
+      let isSwipeInProgress = false;
       const THRESHOLD = 50;
 
       board.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+        isSwipeInProgress = false;
       }, false);
+
+      // Prevent all scroll during and after swipe
+      board.addEventListener("touchmove", (e) => {
+        if (isSwipeInProgress) {
+          e.preventDefault();
+        }
+      }, { passive: false });
 
       board.addEventListener("touchend", (e) => {
         const endX = e.changedTouches[0].clientX;
@@ -2805,6 +2814,8 @@
 
         // Require mostly horizontal movement
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > THRESHOLD) {
+          isSwipeInProgress = true;
+          
           // On mobile carousel: handle swipe without full redraw
           if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
             const scroller = document.querySelector(".weekCols");
@@ -2848,19 +2859,24 @@
                 scroller.style.overflowX = "hidden";
                 scroller.style.overflowY = "hidden";
                 
-                console.log("SWIPE: Blocking scroll and centering day:", nextDay.getAttribute("data-date"));
+                // Calculate exact scroll position to center the day
+                const paddingLeft = 12.5 * window.innerWidth / 100;
+                const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
+                const viewportCenter = scroller.offsetWidth / 2;
+                const scrollPos = dayCenter - paddingLeft - viewportCenter;
                 
-                // Use scrollIntoView ONLY for horizontal centering
-                // block: "nearest" = don't scroll vertically if already visible
-                // inline: "center" = scroll horizontally to center
+                console.log("=== SWIPE START ===");
+                console.log("scrollPos:", scrollPos);
+                
+                // Set scroll position immediately
+                scroller.scrollLeft = scrollPos;
+                
+                // Wait for momentum scroll to settle, then re-enable and re-force position
                 setTimeout(() => {
-                  nextDay.scrollIntoView({
-                    behavior: "instant",
-                    block: "nearest",
-                    inline: "center"
-                  });
-                  console.log("SWIPE: scrollIntoView called");
-                }, 5);
+                  // Force scroll position again to counter momentum
+                  scroller.scrollLeft = scrollPos;
+                  console.log("SWIPE: Re-forced scrollLeft to", scrollPos);
+                }, 800);
                 
                 // Re-enable scroll after momentum settles completely
                 setTimeout(() => {
@@ -2869,7 +2885,8 @@
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
-                  console.log("SWIPE: Scroll re-enabled, transitions restored");
+                  isSwipeInProgress = false;
+                  console.log("=== SWIPE END ===");
                 }, 1200);
               }
               return;
@@ -2882,6 +2899,8 @@
           } else {
             nextDay();
           }
+          
+          isSwipeInProgress = false;
         }
       }, false);
     }
