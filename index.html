@@ -2850,6 +2850,11 @@
                 allDays.forEach(day => {
                   day.style.transition = "";
                 });
+                
+                // After scroll stabilizes, sync active class with actual visible position
+                setTimeout(() => {
+                  updateActiveFromScroll(scroller);
+                }, 50);
               }
               return; // Don't call navigateToDate for mobile carousel
             }
@@ -2863,6 +2868,43 @@
           }
         }
       }, false);
+
+      // Add scroll listener to keep active class in sync with actual scroll position
+      const scroller = document.querySelector(".weekCols");
+      if (scroller) {
+        scroller.addEventListener("scroll", () => {
+          updateActiveFromScroll(scroller);
+        }, { passive: true });
+      }
+    }
+
+    function updateActiveFromScroll(scroller) {
+      if (!scroller) return;
+
+      const scrollerWidth = scroller.offsetWidth;
+      const scrollCenter = scroller.scrollLeft + (scrollerWidth / 2);
+      const allDays = scroller.querySelectorAll(".dayCol");
+      
+      let closestDay = null;
+      let closestDistance = Infinity;
+
+      // Find which day's center is closest to scroll center
+      allDays.forEach(day => {
+        const dayCenter = day.offsetLeft + (day.offsetWidth / 2);
+        const distance = Math.abs(dayCenter - scrollCenter);
+        
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestDay = day;
+        }
+      });
+
+      // Update active class and CURRENT_DISPLAY_DATE based on actual scroll position
+      if (closestDay) {
+        allDays.forEach(day => day.classList.remove("active"));
+        closestDay.classList.add("active");
+        CURRENT_DISPLAY_DATE = closestDay.getAttribute("data-date");
+      }
     }
 
     function scrollToDateOnMobile(dateISO){
