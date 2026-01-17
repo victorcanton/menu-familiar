@@ -2792,10 +2792,12 @@
       let startY = 0;
       const THRESHOLD = 50;
       let scrollTimeout;
+      let isScrolling = false;
 
       board.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+        isScrolling = true;
       }, false);
 
       board.addEventListener("touchend", (e) => {
@@ -2827,7 +2829,8 @@
                 const nextDay = allDays[nextIdx];
                 const nextDate = nextDay.getAttribute("data-date");
                 
-                // Temporarily disable transitions to avoid flicker
+                // Disable all transitions and snap
+                scroller.style.scrollSnapType = "none";
                 allDays.forEach(day => {
                   day.style.transition = "none";
                 });
@@ -2846,11 +2849,8 @@
                 const scrollPos = elLeft + (elWidth / 2) - (scrollerWidth / 2);
                 scroller.scrollLeft = scrollPos;
                 
-                // Force reflow to apply changes, then restore transitions
-                void nextDay.offsetHeight; // Trigger reflow
-                allDays.forEach(day => {
-                  day.style.transition = "";
-                });
+                // Force reflow to apply changes
+                void nextDay.offsetHeight;
               }
               return; // Don't call navigateToDate for mobile carousel
             }
@@ -2863,6 +2863,8 @@
             nextDay();
           }
         }
+        
+        isScrolling = false;
       }, false);
 
       // Add scroll listener to keep active class in sync with actual scroll position
@@ -2871,6 +2873,7 @@
         scroller.addEventListener("scroll", () => {
           // Disable transitions during scroll
           const allDays = scroller.querySelectorAll(".dayCol");
+          scroller.style.scrollSnapType = "none";
           allDays.forEach(day => {
             day.style.transition = "none";
           });
@@ -2881,12 +2884,14 @@
           // Update active class during scroll (without transitions)
           updateActiveFromScroll(scroller);
 
-          // Re-enable transitions after scroll ends
+          // Re-enable transitions and snap AFTER momentum scroll completely stops
           scrollTimeout = setTimeout(() => {
+            scroller.style.scrollSnapType = "";
             allDays.forEach(day => {
               day.style.transition = "";
             });
-          }, 150);
+            isScrolling = false;
+          }, 500); // Increased to 500ms to wait for iOS momentum scroll to stop
         }, { passive: true });
       }
     }
