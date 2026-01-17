@@ -2842,11 +2842,15 @@
                 currentActive?.classList.remove("active");
                 nextDay.classList.add("active");
                 
-                // Calculate and apply exact scroll position to center this day
+                // Calculate exact scroll position to center the day
+                // dayCol offsetLeft is relative to the flex container (including padding-left)
+                // scrollLeft=0 shows the first day starting at -12.5vw (off-screen left due to padding)
+                // To center a day in the viewport: scrollLeft = offsetLeft - paddingLeft + (dayWidth/2) - (viewportWidth/2)
+                const paddingLeft = 12.5 * window.innerWidth / 100; // 12.5vw in pixels
+                const dayLeft = nextDay.offsetLeft;
                 const dayWidth = nextDay.offsetWidth;
                 const scrollerWidth = scroller.offsetWidth;
-                // Center the day: (day position + day center) - (scroller center)
-                const exactScrollPos = nextDay.offsetLeft + (dayWidth / 2) - (scrollerWidth / 2);
+                const exactScrollPos = dayLeft - paddingLeft + (dayWidth / 2) - (scrollerWidth / 2);
                 
                 // Apply immediately
                 scroller.scrollLeft = exactScrollPos;
@@ -2887,18 +2891,6 @@
 
           // Re-enable transitions AFTER momentum scroll completely stops
           scrollTimeout = setTimeout(() => {
-            const scroller = document.querySelector(".weekCols");
-            if (scroller) {
-              // When scroll stabilizes, force exact centering of active day
-              const activeDay = scroller.querySelector(".dayCol.active");
-              if (activeDay) {
-                const dayWidth = activeDay.offsetWidth;
-                const scrollerWidth = scroller.offsetWidth;
-                const exactScrollPos = activeDay.offsetLeft + (dayWidth / 2) - (scrollerWidth / 2);
-                scroller.scrollLeft = exactScrollPos;
-              }
-            }
-            
             allDays.forEach(day => {
               day.classList.add("transitions-enabled");
             });
