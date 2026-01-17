@@ -819,7 +819,7 @@
       margin-left: calc(-50vw + 50%) !important;
       margin-right: calc(-50vw + 50%) !important;
       padding: 12px 20px !important;
-      padding-right: calc(20px + env(safe-area-inset-right)) !important;
+      padding-right: calc(50vw - 37.5vw + 20px + env(safe-area-inset-right)) !important;
       padding-bottom: 12px !important;
       min-width: auto !important;
       box-sizing: content-box !important;
@@ -2815,12 +2815,13 @@
               const allDays = Array.from(scroller.querySelectorAll(".dayCol"));
               const currentIdx = currentActive ? allDays.indexOf(currentActive) : 0;
               
+              // Limit to exactly one day per swipe (not two)
               let nextIdx = currentIdx;
               if (diffX > 0) {
-                // Swipe right = previous day
+                // Swipe right = previous day (one step only)
                 nextIdx = Math.max(0, currentIdx - 1);
               } else {
-                // Swipe left = next day
+                // Swipe left = next day (one step only)
                 nextIdx = Math.min(allDays.length - 1, currentIdx + 1);
               }
 
