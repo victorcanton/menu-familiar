@@ -2784,7 +2784,37 @@
       scrollToDateOnMobile(dateISO);
     }
 
-    function setupDailySwipeHandlers() {
+    // Smooth scroll to center an element horizontally WITHOUT touching vertical scroll
+    function smoothHorizontalScroll(scroller, element, duration = 600) {
+      if (!scroller || !element) return;
+      
+      // Calculate target scroll position to center the element
+      const elementCenter = element.offsetLeft + element.offsetWidth / 2;
+      const viewportCenter = scroller.offsetWidth / 2;
+      const targetScrollLeft = elementCenter - viewportCenter;
+      
+      const startScrollLeft = scroller.scrollLeft;
+      const difference = targetScrollLeft - startScrollLeft;
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeProgress = progress < 0.5 
+          ? 2 * progress * progress 
+          : -1 + (4 - 2 * progress) * progress;
+        
+        scroller.scrollLeft = startScrollLeft + difference * easeProgress;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      animate();
+    }
       const board = document.getElementById("dailyBoard");
       if (!board) return;
 
@@ -2797,16 +2827,11 @@
       setTimeout(() => {
         const scroller = document.querySelector(".weekCols");
         if (scroller && window.matchMedia("(max-width: 900px)").matches) {
-          // Find the day that matches CURRENT_DISPLAY_DATE
           const targetDay = scroller.querySelector(`.dayCol[data-date="${CURRENT_DISPLAY_DATE}"]`);
           const dayToCenter = targetDay || scroller.querySelector(".dayCol");
           
           if (dayToCenter) {
-            dayToCenter.scrollIntoView({
-              behavior: "instant",
-              block: "nearest",
-              inline: "center"
-            });
+            smoothHorizontalScroll(scroller, dayToCenter, 600);
             console.log("INIT: Centered day", CURRENT_DISPLAY_DATE);
           }
         }
@@ -2874,26 +2899,20 @@
                 // Disable transitions for instant visual updates
                 allDays.forEach(day => day.style.transition = "none");
                 
-                // Block horizontal scroll only
+                // Block horizontal scroll during animation to prevent momentum
                 scroller.style.overflowX = "hidden";
                 
-                // Center the day with smooth animation
-                scroller.style.scrollBehavior = "smooth";
-                nextDay.scrollIntoView({
-                  behavior: "smooth",
-                  block: "nearest",
-                  inline: "center"
-                });
+                // Use custom smooth scroll that only affects X axis
+                smoothHorizontalScroll(scroller, nextDay, 600);
                 
                 // Re-enable scroll after animation settles
                 setTimeout(() => {
                   scroller.style.overflowX = "scroll";
-                  scroller.style.scrollBehavior = "auto";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
-                }, 1000);
+                }, 700);
               }
               return;
             }
