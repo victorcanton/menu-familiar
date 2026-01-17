@@ -814,7 +814,7 @@
       overflow-x: scroll !important;
       overflow-y: hidden !important;
       scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
+      scroll-snap-type: none;
       width: 100vw !important;
       margin-left: calc(-50vw + 50%) !important;
       margin-right: calc(-50vw + 50%) !important;
@@ -842,8 +842,6 @@
       border-radius: 16px !important;
       padding: 12px !important;
       margin-right: 8px !important;
-      scroll-snap-align: center;
-      scroll-snap-stop: always;
       
       /* Default state: slightly smaller and lower opacity */
       opacity: 0.7;
@@ -2829,8 +2827,7 @@
                 const nextDay = allDays[nextIdx];
                 const nextDate = nextDay.getAttribute("data-date");
                 
-                // Disable all transitions and snap
-                scroller.style.scrollSnapType = "none";
+                // Disable all transitions
                 allDays.forEach(day => {
                   day.style.transition = "none";
                 });
@@ -2873,7 +2870,6 @@
         scroller.addEventListener("scroll", () => {
           // Disable transitions during scroll
           const allDays = scroller.querySelectorAll(".dayCol");
-          scroller.style.scrollSnapType = "none";
           allDays.forEach(day => {
             day.style.transition = "none";
           });
@@ -2884,14 +2880,13 @@
           // Update active class during scroll (without transitions)
           updateActiveFromScroll(scroller);
 
-          // Re-enable transitions and snap AFTER momentum scroll completely stops
+          // Re-enable transitions AFTER momentum scroll completely stops
           scrollTimeout = setTimeout(() => {
-            scroller.style.scrollSnapType = "";
             allDays.forEach(day => {
               day.style.transition = "";
             });
             isScrolling = false;
-          }, 500); // Increased to 500ms to wait for iOS momentum scroll to stop
+          }, 600); // Increased to 600ms for Android momentum scroll
         }, { passive: true });
       }
     }
