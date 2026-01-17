@@ -2844,38 +2844,26 @@
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
                 
-                // Block scroll input temporarily
-                scroller.style.pointerEvents = "none";
+                // Block scroll input temporarily to prevent momentum scroll interference
+                scroller.style.overflowX = "hidden";
                 
-                // DEBUG: Log values for analysis
-                const paddingLeft = 12.5 * window.innerWidth / 100;
-                const dayCenter = nextDay.offsetLeft + nextDay.offsetWidth / 2;
-                const viewportCenter = scroller.offsetWidth / 2;
-                const scrollPos = dayCenter - paddingLeft - viewportCenter;
-                
-                console.log("=== SWIPE DEBUG ===");
-                console.log("window.innerWidth:", window.innerWidth);
-                console.log("paddingLeft (12.5vw):", paddingLeft);
-                console.log("nextDay.offsetLeft:", nextDay.offsetLeft);
-                console.log("nextDay.offsetWidth:", nextDay.offsetWidth);
-                console.log("dayCenter:", dayCenter);
-                console.log("scroller.offsetWidth:", scroller.offsetWidth);
-                console.log("viewportCenter:", viewportCenter);
-                console.log("scrollPos calculated:", scrollPos);
-                console.log("scroller.scrollLeft before:", scroller.scrollLeft);
-                
-                scroller.scrollLeft = scrollPos;
-                
-                console.log("scroller.scrollLeft after:", scroller.scrollLeft);
-                console.log("====================");
-                
-                // Re-enable pointer events and transitions
+                // Use scrollIntoView with smooth behavior to center the day
+                // This is more reliable than setting scrollLeft directly during momentum scroll
                 setTimeout(() => {
-                  scroller.style.pointerEvents = "";
+                  nextDay.scrollIntoView({
+                    behavior: "instant",
+                    block: "nearest",
+                    inline: "center"
+                  });
+                }, 10);
+                
+                // Re-enable scroll and transitions after momentum settles
+                setTimeout(() => {
+                  scroller.style.overflowX = "scroll";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
-                }, 500);
+                }, 800);
               }
               return;
             }
