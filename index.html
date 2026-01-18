@@ -859,7 +859,7 @@
 
     /* Add extra space after last day to allow it to center */
     .dayCol:last-child {
-      margin-right: 12.5vw !important;
+      margin-right: 25vw !important;
     }
 
     .mealName {
@@ -2940,6 +2940,9 @@
                 // Update active class
                 allDays.forEach(day => day.classList.remove("active"));
                 nextDay.classList.add("active");
+                
+                // Update week label in header
+                updateDateLabelForMode();
                 
                 // Disable transitions for instant visual updates
                 allDays.forEach(day => day.style.transition = "none");
