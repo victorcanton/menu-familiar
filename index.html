@@ -817,7 +817,6 @@
       scroll-snap-type: none;
       width: 100vw !important;
       padding: 12px 12.5vw !important;
-      padding-right: 12.5vw !important;
       padding-bottom: 12px !important;
       margin: 0 !important;
       min-width: auto !important;
@@ -858,9 +857,9 @@
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    /* Remove extra margin from last item */
+    /* Add extra space after last day to allow it to center */
     .dayCol:last-child {
-      margin-right: 0 !important;
+      margin-right: 12.5vw !important;
     }
 
     .mealName {
@@ -2791,7 +2790,6 @@
       if (!scroller || !element) return;
       
       // Block scroll immediately to stop any momentum
-      const originalOverflow = scroller.style.overflowX;
       scroller.style.overflowX = "hidden";
       
       // Get computed style to read the actual padding
@@ -2815,11 +2813,13 @@
       
       // If already at target, restore and return
       if (Math.abs(difference) < 1) {
-        scroller.style.overflowX = originalOverflow || "scroll";
+        scroller.style.overflowX = "scroll";
         return;
       }
       
       const startTime = performance.now();
+      let guardActive = false;
+      let guardHandler = null;
       
       const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
@@ -2833,13 +2833,26 @@
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Animation complete: force final position and restore scroll
+          // Animation complete: force final position
           scroller.scrollLeft = targetScrollLeft;
-          // Small delay before restoring scroll to ensure momentum is dead
+          
+          // Create a scroll guard that forces position for 300ms after restoring scroll
+          guardActive = true;
+          guardHandler = () => {
+            if (guardActive) {
+              scroller.scrollLeft = targetScrollLeft;
+            }
+          };
+          
+          // Restore scroll but add guard
+          scroller.style.overflowX = "scroll";
+          scroller.addEventListener("scroll", guardHandler);
+          
+          // Remove guard after 300ms
           setTimeout(() => {
-            scroller.scrollLeft = targetScrollLeft; // Force again
-            scroller.style.overflowX = originalOverflow || "scroll";
-          }, 50);
+            guardActive = false;
+            scroller.removeEventListener("scroll", guardHandler);
+          }, 300);
         }
       };
       
