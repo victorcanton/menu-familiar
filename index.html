@@ -817,6 +817,7 @@
       scroll-snap-type: none;
       width: 100vw !important;
       padding: 12px 12.5vw !important;
+      padding-right: 12.5vw !important;
       padding-bottom: 12px !important;
       margin: 0 !important;
       min-width: auto !important;
@@ -2789,6 +2790,10 @@
     function smoothHorizontalScroll(scroller, element, duration = 400) {
       if (!scroller || !element) return;
       
+      // Block scroll immediately to stop any momentum
+      const originalOverflow = scroller.style.overflowX;
+      scroller.style.overflowX = "hidden";
+      
       // Get computed style to read the actual padding
       const computedStyle = window.getComputedStyle(scroller);
       const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
@@ -2808,17 +2813,11 @@
       const startScrollLeft = scroller.scrollLeft;
       const difference = targetScrollLeft - startScrollLeft;
       
-      console.log("=== SCROLL CALC ===");
-      console.log("paddingLeft:", paddingLeft);
-      console.log("elementLeft:", elementLeft, "elementWidth:", elementWidth);
-      console.log("elementCenter:", elementCenter);
-      console.log("visibleWidth:", visibleWidth, "visibleCenter:", visibleCenter);
-      console.log("targetScrollLeft:", targetScrollLeft);
-      console.log("startScrollLeft:", startScrollLeft, "difference:", difference);
-      console.log("==================");
-      
-      // If already at target, no animation needed
-      if (Math.abs(difference) < 1) return;
+      // If already at target, restore and return
+      if (Math.abs(difference) < 1) {
+        scroller.style.overflowX = originalOverflow || "scroll";
+        return;
+      }
       
       const startTime = performance.now();
       
@@ -2833,6 +2832,14 @@
         
         if (progress < 1) {
           requestAnimationFrame(animate);
+        } else {
+          // Animation complete: force final position and restore scroll
+          scroller.scrollLeft = targetScrollLeft;
+          // Small delay before restoring scroll to ensure momentum is dead
+          setTimeout(() => {
+            scroller.scrollLeft = targetScrollLeft; // Force again
+            scroller.style.overflowX = originalOverflow || "scroll";
+          }, 50);
         }
       };
       
@@ -2924,15 +2931,12 @@
                 // Disable transitions for instant visual updates
                 allDays.forEach(day => day.style.transition = "none");
                 
-                // Block horizontal scroll during animation to prevent momentum
-                scroller.style.overflowX = "hidden";
-                
                 // Use custom smooth scroll that only affects X axis (no Y movement)
+                // The function handles blocking momentum internally
                 smoothHorizontalScroll(scroller, nextDay, 400);
                 
-                // Re-enable scroll after animation completes
+                // Re-enable transitions after animation completes
                 setTimeout(() => {
-                  scroller.style.overflowX = "scroll";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
