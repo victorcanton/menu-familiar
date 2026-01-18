@@ -2785,7 +2785,7 @@
     }
 
     // Smooth scroll to center an element horizontally WITHOUT touching vertical scroll
-    function smoothHorizontalScroll(scroller, element, duration = 600) {
+    function smoothHorizontalScroll(scroller, element, duration = 800) {
       if (!scroller || !element) return;
       
       // Save current scroll positions
@@ -2793,7 +2793,6 @@
       const savedScrollY = window.scrollY;
       
       // Use scrollIntoView to calculate the CORRECT target position
-      // This is instant and we immediately read the result
       element.scrollIntoView({
         behavior: "instant",
         block: "nearest",
@@ -2803,7 +2802,7 @@
       // Read the scroll position that scrollIntoView calculated
       const targetScrollLeft = scroller.scrollLeft;
       
-      // Restore Y immediately (scrollIntoView might have changed it)
+      // Restore Y immediately
       window.scrollTo(0, savedScrollY);
       
       // Reset to start position for animation
@@ -2817,15 +2816,21 @@
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function for smooth animation
-        const easeProgress = progress < 0.5 
-          ? 2 * progress * progress 
-          : -1 + (4 - 2 * progress) * progress;
+        // Smooth easing function (ease-in-out cubic)
+        const easeProgress = progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
         
         scroller.scrollLeft = startScrollLeft + difference * easeProgress;
         
+        // Continuously restore Y during animation to prevent drift
+        window.scrollTo(0, savedScrollY);
+        
         if (progress < 1) {
           requestAnimationFrame(animate);
+        } else {
+          // Final restoration at end
+          window.scrollTo(0, savedScrollY);
         }
       };
       
@@ -2849,7 +2854,7 @@
           const dayToCenter = targetDay || scroller.querySelector(".dayCol");
           
           if (dayToCenter) {
-            smoothHorizontalScroll(scroller, dayToCenter, 600);
+            smoothHorizontalScroll(scroller, dayToCenter, 400);
             console.log("INIT: Centered day", CURRENT_DISPLAY_DATE);
           }
         }
@@ -2921,16 +2926,16 @@
                 scroller.style.overflowX = "hidden";
                 
                 // Use custom smooth scroll that only affects X axis
-                smoothHorizontalScroll(scroller, nextDay, 600);
+                smoothHorizontalScroll(scroller, nextDay, 800);
                 
-                // Re-enable scroll after animation settles
+                // Re-enable scroll after animation completes
                 setTimeout(() => {
                   scroller.style.overflowX = "scroll";
                   allDays.forEach(day => {
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
-                }, 700);
+                }, 900);
               }
               return;
             }
