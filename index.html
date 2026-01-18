@@ -2788,19 +2788,28 @@
     function smoothHorizontalScroll(scroller, element, duration = 600) {
       if (!scroller || !element) return;
       
-      // Get the position of the element relative to the scroller viewport
-      const scrollerRect = scroller.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      
-      // Calculate how much we need to scroll to center the element
-      const elementCenterX = elementRect.left + elementRect.width / 2;
-      const scrollerCenterX = scrollerRect.left + scrollerRect.width / 2;
-      const distanceFromCenter = elementCenterX - scrollerCenterX;
-      
-      // Target scroll position
-      const targetScrollLeft = scroller.scrollLeft + distanceFromCenter;
-      
+      // Save current scroll positions
       const startScrollLeft = scroller.scrollLeft;
+      const savedScrollY = window.scrollY;
+      
+      // Use scrollIntoView to calculate the CORRECT target position
+      // This is instant and we immediately read the result
+      element.scrollIntoView({
+        behavior: "instant",
+        block: "nearest",
+        inline: "center"
+      });
+      
+      // Read the scroll position that scrollIntoView calculated
+      const targetScrollLeft = scroller.scrollLeft;
+      
+      // Restore Y immediately (scrollIntoView might have changed it)
+      window.scrollTo(0, savedScrollY);
+      
+      // Reset to start position for animation
+      scroller.scrollLeft = startScrollLeft;
+      
+      // Now animate smoothly to the target position
       const difference = targetScrollLeft - startScrollLeft;
       const startTime = Date.now();
       
