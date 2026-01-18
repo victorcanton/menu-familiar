@@ -2792,6 +2792,15 @@
       const startScrollLeft = scroller.scrollLeft;
       const savedScrollY = window.scrollY;
       
+      // Block vertical scroll on body/html during animation
+      const html = document.documentElement;
+      const body = document.body;
+      const originalHtmlOverflow = html.style.overflowY;
+      const originalBodyOverflow = body.style.overflowY;
+      
+      html.style.overflowY = "hidden";
+      body.style.overflowY = "hidden";
+      
       // Use scrollIntoView to calculate the CORRECT target position
       element.scrollIntoView({
         behavior: "instant",
@@ -2823,14 +2832,16 @@
         
         scroller.scrollLeft = startScrollLeft + difference * easeProgress;
         
-        // Continuously restore Y during animation to prevent drift
+        // Continuously restore Y during animation
         window.scrollTo(0, savedScrollY);
         
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Final restoration at end
+          // Final restoration and unblock vertical scroll
           window.scrollTo(0, savedScrollY);
+          html.style.overflowY = originalHtmlOverflow;
+          body.style.overflowY = originalBodyOverflow;
         }
       };
       
