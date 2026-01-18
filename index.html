@@ -813,7 +813,7 @@
       gap: 0 !important;
       overflow-x: scroll !important;
       overflow-y: hidden !important;
-      scroll-behavior: smooth;
+      scroll-behavior: auto;
       scroll-snap-type: none;
       width: 100vw !important;
       padding: 12px 12.5vw !important;
@@ -2785,67 +2785,58 @@
     }
 
     // Smooth scroll to center an element horizontally WITHOUT touching vertical scroll
-    function smoothHorizontalScroll(scroller, element, duration = 800) {
+    // This function calculates the exact scroll position mathematically without using scrollIntoView
+    function smoothHorizontalScroll(scroller, element, duration = 400) {
       if (!scroller || !element) return;
       
-      // Save current scroll positions
+      // Get computed style to read the actual padding
+      const computedStyle = window.getComputedStyle(scroller);
+      const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+      
+      // Calculate target scroll position to center the element
+      const elementLeft = element.offsetLeft;
+      const elementWidth = element.offsetWidth;
+      const elementCenter = elementLeft + elementWidth / 2;
+      
+      // The visible area center, accounting for padding
+      const visibleWidth = scroller.clientWidth;
+      const visibleCenter = visibleWidth / 2;
+      
+      // Target scrollLeft: position where element center aligns with visible center
+      const targetScrollLeft = elementCenter - visibleCenter + paddingLeft;
+      
       const startScrollLeft = scroller.scrollLeft;
-      const savedScrollY = window.scrollY;
-      
-      // Block vertical scroll on body/html during animation
-      const html = document.documentElement;
-      const body = document.body;
-      const originalHtmlOverflow = html.style.overflowY;
-      const originalBodyOverflow = body.style.overflowY;
-      
-      html.style.overflowY = "hidden";
-      body.style.overflowY = "hidden";
-      
-      // Use scrollIntoView to calculate the CORRECT target position
-      element.scrollIntoView({
-        behavior: "instant",
-        block: "nearest",
-        inline: "center"
-      });
-      
-      // Read the scroll position that scrollIntoView calculated
-      const targetScrollLeft = scroller.scrollLeft;
-      
-      // Restore Y immediately
-      window.scrollTo(0, savedScrollY);
-      
-      // Reset to start position for animation
-      scroller.scrollLeft = startScrollLeft;
-      
-      // Now animate smoothly to the target position
       const difference = targetScrollLeft - startScrollLeft;
-      const startTime = Date.now();
       
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
+      console.log("=== SCROLL CALC ===");
+      console.log("paddingLeft:", paddingLeft);
+      console.log("elementLeft:", elementLeft, "elementWidth:", elementWidth);
+      console.log("elementCenter:", elementCenter);
+      console.log("visibleWidth:", visibleWidth, "visibleCenter:", visibleCenter);
+      console.log("targetScrollLeft:", targetScrollLeft);
+      console.log("startScrollLeft:", startScrollLeft, "difference:", difference);
+      console.log("==================");
+      
+      // If already at target, no animation needed
+      if (Math.abs(difference) < 1) return;
+      
+      const startTime = performance.now();
+      
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Smooth easing function (ease-in-out cubic)
-        const easeProgress = progress < 0.5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        // Smooth easing function (ease-out cubic for natural deceleration)
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
         
         scroller.scrollLeft = startScrollLeft + difference * easeProgress;
         
-        // Continuously restore Y during animation
-        window.scrollTo(0, savedScrollY);
-        
         if (progress < 1) {
           requestAnimationFrame(animate);
-        } else {
-          // Final restoration and unblock vertical scroll
-          window.scrollTo(0, savedScrollY);
-          html.style.overflowY = originalHtmlOverflow;
-          body.style.overflowY = originalBodyOverflow;
         }
       };
       
-      animate();
+      requestAnimationFrame(animate);
     }
 
     function setupDailySwipeHandlers() {
@@ -2936,8 +2927,8 @@
                 // Block horizontal scroll during animation to prevent momentum
                 scroller.style.overflowX = "hidden";
                 
-                // Use custom smooth scroll that only affects X axis
-                smoothHorizontalScroll(scroller, nextDay, 800);
+                // Use custom smooth scroll that only affects X axis (no Y movement)
+                smoothHorizontalScroll(scroller, nextDay, 400);
                 
                 // Re-enable scroll after animation completes
                 setTimeout(() => {
@@ -2946,7 +2937,7 @@
                     day.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                   });
                   isSwipeInProgress = false;
-                }, 900);
+                }, 500);
               }
               return;
             }
