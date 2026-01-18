@@ -2788,10 +2788,17 @@
     function smoothHorizontalScroll(scroller, element, duration = 600) {
       if (!scroller || !element) return;
       
-      // Calculate target scroll position to center the element
-      const elementCenter = element.offsetLeft + element.offsetWidth / 2;
-      const viewportCenter = scroller.offsetWidth / 2;
-      const targetScrollLeft = elementCenter - viewportCenter;
+      // Get the position of the element relative to the scroller viewport
+      const scrollerRect = scroller.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      
+      // Calculate how much we need to scroll to center the element
+      const elementCenterX = elementRect.left + elementRect.width / 2;
+      const scrollerCenterX = scrollerRect.left + scrollerRect.width / 2;
+      const distanceFromCenter = elementCenterX - scrollerCenterX;
+      
+      // Target scroll position
+      const targetScrollLeft = scroller.scrollLeft + distanceFromCenter;
       
       const startScrollLeft = scroller.scrollLeft;
       const difference = targetScrollLeft - startScrollLeft;
